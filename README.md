@@ -17,6 +17,14 @@ npm test           # vitest 单测（状态机回放 / 信号提取 / 经书预�
 npm run icons      # 重新生成 PWA 图标（scripts/gen-icons.mjs，零依赖手工编码 PNG）
 ```
 
+## 部署（GitHub Pages）
+
+push 到 `main` 分支即自动构建部署（`.github/workflows/deploy.yml`），地址：
+https://maxwell-freefov.github.io/prostration-counter/
+
+首次使用需在仓库 Settings → Pages 把 Source 选为 **GitHub Actions**。
+生产构建的 base 路径为 `/prostration-counter/`（仅 build 时生效，dev 仍为根路径）。
+
 ## 摄像头调试
 
 getUserMedia 要求**安全上下文**：只有 `localhost` 或 **HTTPS** 下摄像头才能打开。

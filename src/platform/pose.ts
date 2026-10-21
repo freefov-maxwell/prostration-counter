@@ -11,10 +11,10 @@ export function loadPoseLandmarker(): Promise<PoseLandmarker> {
   if (landmarker) return Promise.resolve(landmarker);
   if (loading) return loading;
   loading = (async () => {
-    const vision = await FilesetResolver.forVisionTasks('/wasm');
+    const vision = await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`);
     landmarker = await PoseLandmarker.createFromOptions(vision, {
       baseOptions: {
-        modelAssetPath: '/models/pose_landmarker_lite.task',
+        modelAssetPath: `${import.meta.env.BASE_URL}models/pose_landmarker_lite.task`,
         delegate: 'GPU',
       },
       runningMode: 'VIDEO',
