@@ -154,7 +154,7 @@ export function CalibratePage() {
         {!error && stage === 'loading' && (
           <div className="panel">
             <p className="guidance">
-              首次使用需下载{progress ? progress.label : '识别资源'}，之后离线可用
+              首次使用需下载识别资源（约 16 MB），之后离线可用
             </p>
             {progress ? (
               <>

@@ -7,11 +7,9 @@ let landmarker: PoseLandmarker | null = null;
 let loading: Promise<PoseLandmarker> | null = null;
 
 export interface LoadProgress {
-  /** 阶段名：「识别引擎」或「姿态模型」 */
-  label: string;
-  /** 本阶段已下载字节 */
+  /** 全部资源累计已下载字节（解压后口径） */
   loaded: number;
-  /** 本阶段总字节（0 表示服务器未返回 Content-Length） */
+  /** 全部资源总字节（0 表示大小未知，进度条走不定态） */
   total: number;
 }
 
@@ -49,8 +47,10 @@ async function downloadWithProgress(
 
 /**
  * 模型懒加载：首次进入校准页才加载，之后走 Service Worker 运行时缓存（CacheFirst）离线可用。
- * 推理引擎（WASM，约 11MB）先自行预热下载以回报进度，FilesetResolver 随后命中缓存；
- * 姿态模型下载后转 Blob URL 直接装载，不二次请求。
+ * 引擎（JS + WASM）与姿态模型并行下载，进度合并为一条总进度；
+ * 总量以 public/pose-assets.json（构建期生成的解压后大小清单）为准——服务器开 gzip/brotli 时
+ * Content-Length 是压缩后大小，与流式读到的解压后字节不一致，不能作为进度口径。
+ * 预热下载后 FilesetResolver 命中缓存；模型字节转 Blob URL 直接装载，不二次请求。
  */
 export function loadPoseLandmarker(
   onProgress?: (p: LoadProgress) => void,
@@ -58,14 +58,32 @@ export function loadPoseLandmarker(
   if (landmarker) return Promise.resolve(landmarker);
   if (loading) return loading;
   const base = import.meta.env.BASE_URL;
+  const files = [
+    'wasm/vision_wasm_internal.js',
+    'wasm/vision_wasm_internal.wasm',
+    'models/pose_landmarker_lite.task',
+  ];
   loading = (async () => {
-    await downloadWithProgress(`${base}wasm/vision_wasm_internal.js`, () => {});
-    await downloadWithProgress(`${base}wasm/vision_wasm_internal.wasm`, (loaded, total) =>
-      onProgress?.({ label: '识别引擎', loaded, total }),
-    );
-    const modelBytes = await downloadWithProgress(
-      `${base}models/pose_landmarker_lite.task`,
-      (loaded, total) => onProgress?.({ label: '姿态模型', loaded, total }),
+    let total = 0;
+    try {
+      const resp = await fetch(`${base}pose-assets.json`);
+      if (resp.ok) {
+        const sizes: Record<string, number> = await resp.json();
+        total = files.reduce((sum, f) => sum + (sizes[f] ?? 0), 0);
+      }
+    } catch {
+      // 清单不可用时退化为不定态进度（total = 0）
+    }
+    const currents = files.map(() => 0);
+    const report = () =>
+      onProgress?.({ loaded: currents.reduce((a, b) => a + b, 0), total });
+    const [, , modelBytes] = await Promise.all(
+      files.map((f, i) =>
+        downloadWithProgress(`${base}${f}`, (loaded) => {
+          currents[i] = loaded;
+          report();
+        }),
+      ),
     );
     const vision = await FilesetResolver.forVisionTasks(`${base}wasm`);
     const modelUrl = URL.createObjectURL(new Blob([modelBytes as BlobPart]));
