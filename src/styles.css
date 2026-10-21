@@ -421,3 +421,19 @@ button {
   border-bottom: 1px solid var(--line);
   font-size: 15px;
 }
+
+/* 下载进度条（模型/引擎首次加载） */
+.progress {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+  margin: 12px 0 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--cinnabar);
+  border-radius: 4px;
+  transition: width 0.2s ease-out;
+}

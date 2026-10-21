@@ -15,7 +15,7 @@ export default defineConfig(({ command }) => {
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['models/*.task', 'wasm/**/*', 'icons/*.png'],
+      includeAssets: ['icons/*.png'],
       manifest: {
         name: '大礼拜计数',
         short_name: '大礼拜',
@@ -33,10 +33,20 @@ export default defineConfig(({ command }) => {
         ],
       },
       workbox: {
-        // 模型 ~5.7MB + wasm（当前版本单文件 11.2MB），放宽单文件预缓存上限
-        maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,png,svg,task,wasm,data,json}'],
+        // 模型 + 推理引擎共约 17MB，不做预缓存（否则首屏要背约 39MB），
+        // 改为运行时 CacheFirst：校准页首次带进度下载后，离线可用
+        globPatterns: ['**/*.{js,css,html,png,svg,json}'],
         navigateFallback: 'index.html',
+        runtimeCaching: [
+          {
+            urlPattern: /\/(models|wasm)\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pose-engine',
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

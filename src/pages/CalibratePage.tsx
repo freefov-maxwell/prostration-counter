@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { usePoseLoop } from '../platform/usePoseLoop';
+import { LoadProgress } from '../platform/pose';
 import { analyzeStandingFrame, SignalExtractor } from '../engine/signals';
 import { initialMachineState, MachineState, stepMachine } from '../engine/stateMachine';
 import { evaluateCollision, CollisionResult, TrialSample } from '../engine/collision';
@@ -21,6 +22,8 @@ export function CalibratePage() {
   const [guidance, setGuidance] = useState('请走入画面，全身入镜站好');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CollisionResult | null>(null);
+  const [progress, setProgress] = useState<LoadProgress | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   const phaseRef = useRef<Phase>('position');
   phaseRef.current = phase;
@@ -103,7 +106,7 @@ export function CalibratePage() {
     }
   };
 
-  const stage = usePoseLoop(videoRef, { onFrame, onError: setError });
+  const stage = usePoseLoop(videoRef, { onFrame, onError: setError, onProgress: setProgress }, retryKey);
 
   const retryTrial = () => {
     if (baselineRef.current) {
@@ -130,15 +133,50 @@ export function CalibratePage() {
         {error && (
           <div className="panel">
             <p>{error}</p>
-            <button className="btn-primary" onClick={() => navigate('home')}>
-              返回首页
-            </button>
+            <div className="btn-row">
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setError(null);
+                  setProgress(null);
+                  setRetryKey((k) => k + 1);
+                }}
+              >
+                重试
+              </button>
+              <button className="btn-secondary" onClick={() => navigate('home')}>
+                返回首页
+              </button>
+            </div>
           </div>
         )}
 
         {!error && stage === 'loading' && (
           <div className="panel">
-            <p>正在加载姿态识别模型（首次约 6MB，之后离线可用）…</p>
+            <p className="guidance">
+              首次使用需下载{progress ? progress.label : '识别资源'}，之后离线可用
+            </p>
+            {progress ? (
+              <>
+                <div className="progress">
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width:
+                        progress.total > 0
+                          ? `${Math.min(100, (progress.loaded / progress.total) * 100)}%`
+                          : '100%',
+                    }}
+                  />
+                </div>
+                <p className="hint">
+                  {(progress.loaded / 1048576).toFixed(1)}
+                  {progress.total > 0 && ` / ${(progress.total / 1048576).toFixed(1)}`} MB
+                </p>
+              </>
+            ) : (
+              <p className="hint">正在准备…</p>
+            )}
           </div>
         )}
 

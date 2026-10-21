@@ -3,14 +3,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { PoseFrame } from '../engine/types';
 import { startCamera, stopCamera, cameraErrorMessage } from './camera';
-import { loadPoseLandmarker, PoseDetector } from './pose';
+import { loadPoseLandmarker, LoadProgress, PoseDetector } from './pose';
 
 interface Options {
   onFrame: (frame: PoseFrame, t: number) => void;
   onError: (message: string) => void;
+  onProgress?: (p: LoadProgress) => void;
 }
 
-export function usePoseLoop(videoRef: React.RefObject<HTMLVideoElement | null>, opts: Options) {
+export function usePoseLoop(
+  videoRef: React.RefObject<HTMLVideoElement | null>,
+  opts: Options,
+  retryKey = 0,
+) {
   const [stage, setStage] = useState<'loading' | 'ready' | 'error'>('loading');
   const optsRef = useRef(opts);
   optsRef.current = opts;
@@ -23,7 +28,7 @@ export function usePoseLoop(videoRef: React.RefObject<HTMLVideoElement | null>, 
     (async () => {
       try {
         const [lm] = await Promise.all([
-          loadPoseLandmarker(),
+          loadPoseLandmarker(optsRef.current.onProgress),
           (async () => {
             if (!videoRef.current) throw new Error('no video element');
             stream = await startCamera(videoRef.current);
@@ -56,7 +61,7 @@ export function usePoseLoop(videoRef: React.RefObject<HTMLVideoElement | null>, 
       stopCamera(stream, videoRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [retryKey]);
 
   return stage;
 }
