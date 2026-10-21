@@ -19,8 +19,20 @@ npm run icons      # 重新生成 PWA 图标（scripts/gen-icons.mjs，零依赖
 
 ## 摄像头调试
 
-getUserMedia 要求安全上下文：请用 **localhost** 或 **HTTPS** 访问。真机调试可用
-`vite --host` 加自签证书，或通过端口转发（如 `adb reverse`）走 localhost。
+getUserMedia 要求**安全上下文**：只有 `localhost` 或 **HTTPS** 下摄像头才能打开。
+本项目已默认开启 `server.host`，`npm run dev` 后会同时监听局域网
+（终端会打印 `Network: http://192.168.x.x:5173`）。但注意：
+**用局域网 IP 走 http 访问不是安全上下文，手机浏览器会拒绝摄像头权限**。
+真机调试三选一：
+
+1. **Android（最省事）**：手机 Chrome 打开 `chrome://flags/#unsafely-treat-insecure-origin-as-secure`，
+   把 `http://192.168.x.x:5173` 填进去并启用，重启浏览器。
+2. **iOS / 通用**：`npx cloudflared tunnel --url http://localhost:5173`（或 ngrok），
+   用生成的 HTTPS 公网地址访问，手机端零配置。
+3. **iOS / 通用**：mkcert 签本地证书并在手机上安装信任根 CA，再让 vite 以 HTTPS 启动。
+
+另外：Windows 首次启动 dev server 若弹防火墙提示，请勾选允许专用网络访问；
+手机与电脑需在同一 Wi-Fi 下。
 
 ## 架构要点
 

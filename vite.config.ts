@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  server: {
+    // 允许局域网访问（手机真机调试）
+    host: true,
+  },
   plugins: [
     react(),
     VitePWA({
