@@ -18,6 +18,8 @@ export const KP = {
   rightEar: 8,
   leftShoulder: 11,
   rightShoulder: 12,
+  leftWrist: 15,
+  rightWrist: 16,
   leftHip: 23,
   rightHip: 24,
   leftAnkle: 27,
@@ -67,6 +69,10 @@ export interface StandingAnalysis {
   shoulderW: number | null;
   earW: number | null;
   upright: boolean;
+  /** 腿伸直：髋到踝 / 肩到髋 足够长（蹲时大腿朝向镜头被压短）。 */
+  legsStraight: boolean;
+  /** 双手自然下垂：两腕都在髋部附近或以下，且靠近身体。 */
+  armsDown: boolean;
   headOutTop: boolean;
   feetOutBottom: boolean;
 }

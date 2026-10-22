@@ -10,7 +10,7 @@ import { playBowl, playGoal, playQing, playVoice, preloadVoices, vibrate, VoiceK
 import { downloadJson, drawPose } from '../platform/overlay';
 import { scripture } from '../scripture';
 
-type PositionKey = 'enter' | 'headOut' | 'feetOut' | 'tooFar' | 'hold';
+type PositionKey = 'enter' | 'headOut' | 'feetOut' | 'tooFar' | 'pose' | 'hold';
 
 /** 远距离可读的大字提示（语音同步播报 scripts/voice-lines.json 中的完整句子）。 */
 const POSITION_TEXT: Record<PositionKey, string> = {
@@ -18,7 +18,8 @@ const POSITION_TEXT: Record<PositionKey, string> = {
   headOut: '头部出画\n请后退一步',
   feetOut: '脚部出画\n请后退一步',
   tooFar: '太远了\n请靠近一点',
-  hold: '站直别动',
+  pose: '请站直\n双手下垂',
+  hold: '很好\n保持不动',
 };
 
 /** 状态稳定这么久才播报，避免识别抖动时连播。 */
@@ -67,7 +68,7 @@ export function SessionPage() {
   const voiceRef = useRef({ key: null as VoiceKey | null, since: 0, spoken: null as VoiceKey | null, at: 0 });
 
   useEffect(() => {
-    preloadVoices(['enter', 'headOut', 'feetOut', 'tooFar', 'hold', 'ready', 'discarded', 'paused', 'resumed', 'goal']);
+    preloadVoices(['enter', 'headOut', 'feetOut', 'tooFar', 'pose', 'hold', 'ready', 'discarded', 'paused', 'resumed', 'goal']);
   }, []);
 
   // 每秒刷新计时显示
@@ -122,15 +123,21 @@ export function SessionPage() {
     // 脚踝不可见也按脚部出画处理（多为画面下缘裁掉或被遮挡）
     else if (a.feetOutBottom || a.height == null) key = 'feetOut';
     else if (a.height < th.targetHeightMin) key = 'tooFar';
+    // 预备姿势：站直、腿伸直、双手自然下垂（蹲在镜头前、T 字、举手都不算）
+    else if (!a.legsStraight || !a.armsDown || a.shoulderW == null) key = 'pose';
     else key = 'hold';
-    const ok = key === 'hold' && a.upright && a.shoulderW != null;
+    const ok = key === 'hold';
     setPosKey(key);
     guide(key, t);
     if (canvasRef.current && videoRef.current) drawPose(canvasRef.current, videoRef.current, frame, ok, th.inFrameMargin);
     if (debugRef.current)
-      debugRef.current.textContent = `H=${a.height?.toFixed(3)} 肩宽=${a.shoulderW?.toFixed(3)} 直立=${a.upright}`;
+      debugRef.current.textContent =
+        `H=${a.height?.toFixed(3)} 肩宽=${a.shoulderW?.toFixed(3)} 直立=${a.upright} 腿直=${a.legsStraight} 手垂=${a.armsDown}`;
 
-    if (!ok) {
+    // 保持期间晃动过大也视为没站稳，重新计时
+    const ys = posSamplesRef.current.map((s) => s.noseY);
+    const drifted = ok && ys.length > 0 && Math.max(...ys, a.noseY!) - Math.min(...ys, a.noseY!) > th.readyMaxDrift;
+    if (!ok || drifted) {
       stableSinceRef.current = null;
       posSamplesRef.current = [];
       return;

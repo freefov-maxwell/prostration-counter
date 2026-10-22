@@ -84,6 +84,7 @@ export type VoiceKey =
   | 'headOut'
   | 'feetOut'
   | 'tooFar'
+  | 'pose'
   | 'hold'
   | 'ready'
   | 'discarded'

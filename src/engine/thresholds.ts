@@ -48,6 +48,10 @@ export interface Thresholds {
   baselineAdapt: number;
   /** 起始站位：人体高度下限（防站太远关键点过小）。 */
   targetHeightMin: number;
+  /** 起始站位：腿长 / 躯干长 下限（站直约 1.6–1.9，蹲约 1）。 */
+  readyLegRatio: number;
+  /** 起始站位：保持期间鼻子位置最大浮动（帧高比例），超出视为没站稳。 */
+  readyMaxDrift: number;
   /** 起始站位：合格姿态需保持的时长。 */
   positionHoldMs: number;
   /** 头 / 脚距画面边缘的最小余量。 */
@@ -80,6 +84,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   baselineAdapt: 0.2,
   // 手机放地面时，安全距离（约 2.5m）下站姿高度仅占画面约 0.4
   targetHeightMin: 0.25,
+  readyLegRatio: 1.3,
+  readyMaxDrift: 0.03,
   positionHoldMs: 1500,
   inFrameMargin: 0.05,
 };

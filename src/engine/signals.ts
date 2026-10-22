@@ -25,6 +25,8 @@ interface Measures {
   shoulderW: number | null;
   earW: number | null;
   upright: boolean;
+  legsStraight: boolean;
+  armsDown: boolean;
   shouldersOk: boolean;
   hipsOk: boolean;
 }
@@ -44,10 +46,21 @@ function measure(frame: Keypoint[], th: Thresholds): Measures {
   const dist = (a: Keypoint, b: Keypoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
   let upright = false;
+  let legsStraight = false;
+  let armsDown = false;
   if (lSh && rSh && lHip && rHip) {
     const dx = (lSh.x + rSh.x - lHip.x - rHip.x) / 2;
-    const dy = (lHip.y + rHip.y - lSh.y - rSh.y) / 2; // 髋在肩下方时为正
+    const dy = (lHip.y + rHip.y - lSh.y - rSh.y) / 2; // 髋在肩下方时为正，即躯干长
     upright = dy > 0 && (Math.atan2(Math.abs(dx), dy) * 180) / Math.PI < th.uprightMaxAngle;
+    const hipY = (lHip.y + rHip.y) / 2;
+    const hipX = (lHip.x + rHip.x) / 2;
+    legsStraight = upright && ankleY != null && (ankleY - hipY) / dy >= th.readyLegRatio;
+    const lW = v(KP.leftWrist);
+    const rW = v(KP.rightWrist);
+    const shW = dist(lSh, rSh);
+    // 手腕不高于髋上方 1/4 躯干，水平方向不超出身体太多（排除 T 字、举手、叉腰外展）
+    const down = (w: Keypoint | null) => !!w && w.y >= hipY - 0.25 * dy && Math.abs(w.x - hipX) <= 1.2 * shW;
+    armsDown = upright && down(lW) && down(rW);
   }
   return {
     noseY: nose ? nose.y : null,
@@ -56,6 +69,8 @@ function measure(frame: Keypoint[], th: Thresholds): Measures {
     shoulderW: lSh && rSh ? dist(lSh, rSh) : null,
     earW: lEar && rEar ? dist(lEar, rEar) : null,
     upright,
+    legsStraight,
+    armsDown,
     shouldersOk: !!(lSh && rSh),
     hipsOk: !!(lHip && rHip),
   };
@@ -75,6 +90,8 @@ export function analyzeStandingFrame(
       shoulderW: null,
       earW: null,
       upright: false,
+      legsStraight: false,
+      armsDown: false,
       headOutTop: false,
       feetOutBottom: false,
     };
@@ -88,6 +105,8 @@ export function analyzeStandingFrame(
     shoulderW: m.shoulderW,
     earW: m.earW,
     upright: m.upright,
+    legsStraight: m.legsStraight,
+    armsDown: m.armsDown,
     headOutTop: m.noseY! <= th.inFrameMargin,
     feetOutBottom: m.ankleY != null && m.ankleY >= 1 - th.inFrameMargin,
   };

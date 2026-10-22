@@ -20,6 +20,8 @@ function standingFrame(over: Partial<Record<number, Keypoint>> = {}): Keypoint[]
   frame[KP.rightHip] = kp(0.55, 0.5);
   frame[KP.leftAnkle] = kp(0.45, 0.9);
   frame[KP.rightAnkle] = kp(0.55, 0.9);
+  frame[KP.leftWrist] = kp(0.38, 0.52); // 双手自然下垂在髋旁
+  frame[KP.rightWrist] = kp(0.62, 0.52);
   for (const [i, v] of Object.entries(over)) if (v) frame[Number(i)] = v;
   return frame;
 }
@@ -126,5 +128,37 @@ describe('analyzeStandingFrame（起始站位分析）', () => {
   it('头部越界 / 无人', () => {
     expect(analyzeStandingFrame(standingFrame({ [KP.nose]: kp(0.5, 0.02) })).headOutTop).toBe(true);
     expect(analyzeStandingFrame(null).hasPerson).toBe(false);
+  });
+
+  it('预备姿势：站直、双手下垂 → 腿直、手垂都成立', () => {
+    const a = analyzeStandingFrame(standingFrame());
+    expect(a.legsStraight).toBe(true);
+    expect(a.armsDown).toBe(true);
+  });
+
+  it('蹲在镜头前：头脚都在画面内、躯干直立，但腿被压短 → 不算预备姿势', () => {
+    // 肩 0.3 / 髋 0.55 / 踝 0.85：腿长/躯干 = 0.30/0.25 = 1.2 < 1.3
+    const squat = standingFrame({
+      [KP.nose]: kp(0.5, 0.15),
+      [KP.leftShoulder]: kp(0.35, 0.3),
+      [KP.rightShoulder]: kp(0.65, 0.3),
+      [KP.leftHip]: kp(0.42, 0.55),
+      [KP.rightHip]: kp(0.58, 0.55),
+      [KP.leftWrist]: kp(0.4, 0.6),
+      [KP.rightWrist]: kp(0.6, 0.6),
+      [KP.leftAnkle]: kp(0.42, 0.85),
+      [KP.rightAnkle]: kp(0.58, 0.85),
+    });
+    const a = analyzeStandingFrame(squat);
+    expect(a.upright).toBe(true);
+    expect(a.feetOutBottom).toBe(false);
+    expect(a.legsStraight).toBe(false);
+  });
+
+  it('T 字 / 举手：双手不算下垂', () => {
+    const tPose = standingFrame({ [KP.leftWrist]: kp(0.1, 0.25), [KP.rightWrist]: kp(0.9, 0.25) });
+    expect(analyzeStandingFrame(tPose).armsDown).toBe(false);
+    const oneHandUp = standingFrame({ [KP.rightWrist]: kp(0.62, 0.05) });
+    expect(analyzeStandingFrame(oneHandUp).armsDown).toBe(false);
   });
 });
