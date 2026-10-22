@@ -34,7 +34,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   id: 1,
   soundOn: true,
-  scriptureEnabled: true,
+  scriptureEnabled: false,
 };
 
 class ProstrationDB extends Dexie {

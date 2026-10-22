@@ -1,70 +1,180 @@
-# 大礼拜计数（dalibai）
+<div align="center">
 
-手机浏览器 PWA：前置摄像头本地运行 BlazePose 姿态识别，自动为大礼拜（磕大头）计数；每拜推进《道德经》逐字显示。纯前端、无后端，视频不出设备，数据仅存本机（IndexedDB），无任何外联请求与埋点。
+简体中文 | [English](README.en.md)
 
-## 技术栈
+<img src="public/icons/icon-192.png" width="96" alt="大礼拜计数图标" />
 
-React 18 + TypeScript + Vite 5 + zustand + dexie + @mediapipe/tasks-vision（PoseLandmarker lite）+ vite-plugin-pwa + vitest。
+# 大礼拜计数 · Prostration Counter
 
-## 常用命令
+**把手机立在拜垫前，你只管磕头，它来数。**
 
-```bash
-npm install        # 安装依赖（postinstall 自动复制 MediaPipe WASM 到 public/wasm/）
-npm run dev        # 开发服务器
-npm run build      # 类型检查 + 生产构建（输出 dist/，含 Service Worker）
-npm run preview    # 预览生产构建
-npm test           # vitest 单测（状态机回放 / 信号提取 / 经书预处理 / 统计）
-npm run icons      # 重新生成 PWA 图标（scripts/gen-icons.mjs，零依赖手工编码 PNG）
+用手机前置摄像头自动为大礼拜（磕大头 / 磕长头）计数；还可开启「每拜一字」，边拜边读《道德经》。<br/>
+打开网页即用 · 无需下载 App · 不注册 · 视频不出手机
+
+[![立即体验](https://img.shields.io/badge/立即体验-在线打开-9e2b25?style=for-the-badge)](https://freefov-maxwell.github.io/prostration-counter/)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-2b2620.svg)](LICENSE)
+![PWA](https://img.shields.io/badge/PWA-可离线使用-f0a830.svg)
+![Privacy](https://img.shields.io/badge/隐私-100%25_本地运行-6b6157.svg)
+![Platform](https://img.shields.io/badge/iOS_%7C_Android-手机浏览器-2b2620.svg)
+
+<br/>
+
+<img src="docs/demo.svg" width="760" alt="示意动画：人做大礼拜，手机屏幕上的计数从 104 涨到 108，《道德经》逐字前进" />
+
+</div>
+
+---
+
+## 为什么做这个
+
+做大礼拜功课的人大多有过这些烦恼：
+
+- 🧮 **边拜边数容易分心**，数着数着就乱了，打断专注；
+- 📿 **念珠、计数器要手持或额外按一下**，五体投地时根本腾不出手；
+- 📅 **十万大礼拜这样的长期功课**，没有记录就看不到自己走了多远。
+
+于是有了这个小工具：**手机立在面前，摄像头看着你，起身那一刻自动 +1。** 你什么都不用按。
+
+## ✨ 亮点
+
+| | |
+|---|---|
+| 🙏 **自动计数** | 识别"站立 → 下拜 → 五体投地 → 起身"完整一拜，回到站立时自动 +1 |
+| 📜 **每拜一字（可选）** | 默认只计数；在准备页或设置中开启后，内置《道德经》全文 5277 字随拜推进，每拜一个字，进度跨天累计，功课做完，经也读了 |
+| 🔔 **声音反馈，不用盯屏幕** | 识别到下拜时一声颂钵，完成一拜一声清磬，达成目标另有提示 |
+| 🗣️ **语音站位引导** | "头部出画了，请后退一步""离得太远了，请靠近一点"……按提示站好，倒数 5 秒自动开始 |
+| ⏸️ **离开自动暂停** | 中途接电话、开门，人一走出画面就暂停，回来站好自动继续 |
+| 📊 **统计与坚持** | 今日拜数、连续天数、累计次数与时长、近 7 / 30 天柱状图、每次的历史记录 |
+| 🔒 **隐私到底** | 姿态识别全部在手机本地完成，**视频不上传、不录制**；数据只存在你的手机里，无账号、无埋点、无广告 |
+| 📶 **离线可用** | 首次打开下载约 16 MB 识别模型，之后断网也能用；可"添加到主屏幕"，像 App 一样打开 |
+
+## 📱 截图
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/home.png" width="200" alt="主页" /><br/><sub>主页：今日拜数与连续天数</sub></td>
+    <td align="center"><img src="docs/screenshots/prepare.png" width="200" alt="准备页" /><br/><sub>准备：手机摆放示意、目标设置</sub></td>
+    <td align="center"><img src="docs/screenshots/summary.png" width="200" alt="完成页" /><br/><sub>完成：本次次数、时长、节奏</sub></td>
+    <td align="center"><img src="docs/screenshots/stats.png" width="200" alt="统计页" /><br/><sub>统计：累计数据与历史记录</sub></td>
+  </tr>
+</table>
+
+## 🚀 立即开始
+
+<table>
+  <tr>
+    <td width="200" align="center">
+      <img src="docs/qrcode.png" width="160" alt="扫码打开大礼拜计数" /><br/>
+      <sub>手机扫码打开</sub>
+    </td>
+    <td>
+      <b>① 打开网页</b><br/>
+      手机浏览器访问 <a href="https://freefov-maxwell.github.io/prostration-counter/">freefov-maxwell.github.io/prostration-counter</a><br/>
+      推荐 iPhone 用 Safari、安卓用 Chrome；微信内打开如无法使用摄像头，请点右上角"在浏览器中打开"。<br/><br/>
+      <b>② 添加到主屏幕（推荐）</b><br/>
+      iPhone：Safari 底部「分享」→「添加到主屏幕」<br/>
+      安卓：Chrome 菜单 →「添加到主屏幕 / 安装应用」
+    </td>
+  </tr>
+</table>
+
+### 一次完整的功课
+
+1. **摆好手机** —— 手机竖放、屏幕朝向你，底部着地、略向后仰（靠在水杯或书上就行），放在你**趴下伸直手臂后指尖前方约 10–20 厘米**的地方。
+2. **点「开始运动」→「开始」**，允许使用摄像头（想边拜边读经，在准备页打开「显示《道德经》逐字」）。首次使用会下载识别模型（约 16 MB），之后离线可用。
+3. **后退站好** —— 站在起拜位置，头到脚都在画面里，站直、双手自然下垂。语音会提示你前后调整，就位后**倒数 5 秒**开始计数。
+4. **开始拜** —— 听到 🔔 颂钵声表示"已识别到下拜"，起身站稳听到清磬声就是 **+1**。抬头就能看到数字（开启经书时还有下一个字）。
+5. **结束** —— 点「结束」保存本次记录，累计数、连续天数自动更新。
+
+> 💡 **小贴士**
+> - 光线充足、背景简洁、衣着不过于宽大，识别更稳定。
+> - 偶尔漏计或多计？屏幕上有 **+1 / −1** 按钮随时手动修正，也可以一键清零。
+> - 可以设定目标（如 **108 拜** 或自定义），达成时会有提示。
+> - 拜的过程中请保持页面在前台；切到后台或锁屏后摄像头会被系统停止，回来时可选择继续。
+
+## ❓ 常见问题
+
+<details>
+<summary><b>我的视频会被上传吗？</b></summary>
+
+不会。整个应用是纯前端网页，没有后端服务器。摄像头画面只在你手机的浏览器内存里交给姿态识别模型处理，不录制、不保存、不上传。练习记录保存在浏览器本地（IndexedDB），设置页可导出 JSON 备份。
+</details>
+
+<details>
+<summary><b>摄像头打不开 / 提示不支持？</b></summary>
+
+- 请确认已允许浏览器使用摄像头；
+- 推荐系统版本：iOS 16.4+ 的 Safari、较新的安卓 Chrome；
+- 部分 App 内置浏览器（如微信）对摄像头支持有限，请改用系统浏览器打开。
+</details>
+
+<details>
+<summary><b>计数不准怎么办？</b></summary>
+
+最常见的原因是摆放位置：站立时全身必须在画面里（站立是计数的"锚点"）。趴下时离手机很近、拍不全没关系，这是设计内的正常情况。若仍偶有误差，可用 +1 / −1 手动修正。
+</details>
+
+<details>
+<summary><b>换手机或清理浏览器数据后记录还在吗？</b></summary>
+
+数据只存在当前浏览器里。清理浏览器数据会清空记录，建议定期在「设置 → 导出数据」备份。
+</details>
+
+<details>
+<summary><b>能读其他经书吗？</b></summary>
+
+目前内置《道德经》，默认关闭，可在准备页或设置里开启；设置里还能查看进度、跳转到任意字或重置。更多经书在路线图里，欢迎提 Issue 告诉我们你想要哪一部。
+</details>
+
+## 🧠 它是怎么数的
+
+摄像头每一帧交给 Google [MediaPipe](https://developers.google.com/mediapipe) 的 BlazePose 模型，在手机本地识别出 33 个人体关键点；再由一个规则状态机判断动作阶段：
+
+```mermaid
+flowchart LR
+    A[站立<br/>全身入镜] -->|髋部下降、头部下沉| B[下拜<br/>🔔 颂钵]
+    B --> C[五体投地<br/>骨架可能不完整]
+    C -->|重新起身| D[回到稳定站立]
+    D -->|"+1 · 清磬 · 下一个字"| A
 ```
 
-## 部署（GitHub Pages）
+计数锚定在"回到稳定站立"这一刻——站着时全身可见、识别最可靠；俯地阶段即使人离手机太近拍不全，也能靠多个信号推断，不要求每帧都有完整骨架。整套逻辑不依赖云端，也不需要训练数据。
 
-push 到 `main` 分支即自动构建部署（`.github/workflows/deploy.yml`），地址：
-https://maxwell-freefov.github.io/prostration-counter/
+## 🗺️ 路线图
 
-首次使用需在仓库 Settings → Pages 把 Source 选为 **GitHub Actions**。
-生产构建的 base 路径为 `/prostration-counter/`（仅 build 时生效，dev 仍为根路径）。
+- [x] 自动计数 + 手动修正
+- [x] 《道德经》逐字显示与跨天进度
+- [x] 语音站位引导、颂钵 / 清磬反馈
+- [x] 历史统计、连续天数、数据导出
+- [x] PWA 离线可用
+- [ ] 微信小程序版
+- [ ] 更多经书（《心经》《金刚经》……）及自定义文本
+- [ ] 多设备数据同步
 
-## 摄像头调试
+## 🤝 参与 & 支持
 
-getUserMedia 要求**安全上下文**：只有 `localhost` 或 **HTTPS** 下摄像头才能打开。
-本项目已默认开启 `server.host`，`npm run dev` 后会同时监听局域网
-（终端会打印 `Network: http://192.168.x.x:5173`）。但注意：
-**用局域网 IP 走 http 访问不是安全上下文，手机浏览器会拒绝摄像头权限**。
-真机调试三选一：
+- 觉得有用？点一个 ⭐ **Star**，或者把链接转给一起做功课的同修，就是最大的支持。
+- 遇到识别不准、机型不兼容，欢迎在 [Issues](https://github.com/freefov-maxwell/prostration-counter/issues) 反馈（附上手机型号和摆放方式会很有帮助）。
+- 欢迎 PR：新经书文本、界面翻译、识别算法改进都很需要。
 
-1. **Android（最省事）**：手机 Chrome 打开 `chrome://flags/#unsafely-treat-insecure-origin-as-secure`，
-   把 `http://192.168.x.x:5173` 填进去并启用，重启浏览器。
-2. **iOS / 通用**：`npx cloudflared tunnel --url http://localhost:5173`（或 ngrok），
-   用生成的 HTTPS 公网地址访问，手机端零配置。
-3. **iOS / 通用**：mkcert 签本地证书并在手机上安装信任根 CA，再让 vite 以 HTTPS 启动。
+<details>
+<summary><b>本地开发（开发者）</b></summary>
 
-另外：Windows 首次启动 dev server 若弹防火墙提示，请勾选允许专用网络访问；
-手机与电脑需在同一 Wi-Fi 下。
+技术栈：React 18 + TypeScript + Vite + MediaPipe Tasks Vision，纯前端 PWA。
 
-## 架构要点
+```bash
+npm install     # 会自动复制 MediaPipe WASM 资源
+npm run dev     # 开发服务器
+npm test        # 单元测试
+npm run build   # 生产构建（输出 dist/）
+```
 
-- `src/engine/`：识别引擎（SignalExtractor / RepStateMachine / 碰撞预判），
-  纯 TypeScript、无 DOM/MediaPipe 依赖，可单测，二期小程序直接复用。
-- `src/platform/`：相机、PoseLandmarker、声音/震动等平台适配层。
-- `src/store/`：zustand 应用状态（页面枚举导航，无 react-router）。
-- `src/db/`：Dexie 三个表（sessions / scriptureProgress / settings）。
+摄像头需要安全上下文（`localhost` 或 HTTPS）。用手机真机调试时，最简单的办法是 `npx cloudflared tunnel --url http://localhost:5173` 拿到一个 HTTPS 地址。推送到 `main` 分支会通过 GitHub Actions 自动部署到 GitHub Pages。
+</details>
 
-### v1 决策注记：主线程推理
+## 许可证
 
-技术文档 §1.3 的优先方案是 Web Worker 推理；v1 采用既定的**降级方案**——
-主线程推理 +「上一帧未完成则丢弃新帧」的背压策略（见 `src/platform/pose.ts` 的
-`PoseDetector`）。理由：v1 优先交付完整功能闭环，lite 模型 + 背压丢帧在中端机上
-可维持有效计数帧率；Worker 方案待 M0 真机实测帧率后再评估是否迁移。
+[MIT](LICENSE) © freefov-maxwell
 
-## PWA
-
-manifest 中文名「大礼拜计数」、standalone、竖屏锁定；Service Worker 预缓存全部
-构建产物 + WASM + 姿态模型（约 39MB，单文件上限放宽到 12MB），首次加载后离线可用。
-
-## 已知限制
-
-- 切后台/熄屏后相机与计时会中断，回前台提示「会话已中断，是否继续」（PWA 平台限制）。
-- 正面摆放下俯地阶段骨架不完整是设计内场景：计数锚定在回到稳定站立，俯地阶段
-  靠 PARTIAL/LOST 帧的多信号推断。
-- iOS 无 Vibration API，震动反馈静默跳过；音频需在用户手势中初始化。
+姿态识别模型与运行时来自 Google MediaPipe（Apache-2.0）；《道德经》文本属公有领域。
