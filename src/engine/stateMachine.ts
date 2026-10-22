@@ -83,7 +83,8 @@ export function stepMachine(
     sig.quality === 'FULL' && hipDrop != null && torsoAngle != null &&
     hipDrop > th.proneHipDrop && torsoAngle > th.proneTorsoAngle;
   // 正面摆放推断：headDrop 超阈值且出现贴近特征（帧质量可为 PARTIAL）
-  const proneInferred = headDrop != null && headDrop > th.proneHeadDrop && sig.closeness;
+  const proneInferred =
+    headDrop != null && headDrop > th.proneHeadDrop && (sig.closeness || !th.proneRequiresCloseness);
   const riseFull =
     sig.quality === 'FULL' && hipDrop != null && torsoAngle != null &&
     (hipDrop < th.riseHipDrop || torsoAngle < th.riseTorsoAngle);

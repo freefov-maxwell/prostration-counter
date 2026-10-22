@@ -48,3 +48,51 @@ export function playGoal(): void {
 export function vibrate(ms: number | number[]): void {
   if ('vibrate' in navigator) navigator.vibrate(ms);
 }
+
+/** 预生成的校准语音（public/voice/*.mp3，由 scripts/gen-voice.py 生成，键与 scripts/voice-lines.json 一致）。 */
+export type VoiceKey =
+  | 'enter'
+  | 'headOut'
+  | 'feetOut'
+  | 'tooFar'
+  | 'hold'
+  | 'trial'
+  | 'safe'
+  | 'close'
+  | 'tooClose'
+  | 'wrongDirection'
+  | 'retry';
+
+const voices = new Map<VoiceKey, Promise<AudioBuffer | null>>();
+let voiceSrc: AudioBufferSourceNode | null = null;
+
+function loadVoice(key: VoiceKey): Promise<AudioBuffer | null> {
+  let p = voices.get(key);
+  if (!p && ctx) {
+    const c = ctx;
+    p = fetch(`${import.meta.env.BASE_URL}voice/${key}.mp3`)
+      .then((r) => r.arrayBuffer())
+      .then((b) => c.decodeAudioData(b))
+      .catch(() => null);
+    voices.set(key, p);
+  }
+  return p ?? Promise.resolve(null);
+}
+
+export function preloadVoices(keys: VoiceKey[]): void {
+  keys.forEach((k) => void loadVoice(k));
+}
+
+/** 播放一条语音；新语音打断正在播的旧语音。 */
+export function playVoice(key: VoiceKey): void {
+  if (!ctx || ctx.state !== 'running') return;
+  void loadVoice(key).then((buf) => {
+    if (!buf || !ctx) return;
+    voiceSrc?.stop();
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start();
+    voiceSrc = src;
+  });
+}

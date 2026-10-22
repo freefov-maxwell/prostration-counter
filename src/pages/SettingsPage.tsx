@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { exportAll } from '../db/db';
+import { downloadJson } from '../platform/overlay';
 import { scripture } from '../scripture';
 
 export function SettingsPage() {
@@ -11,14 +12,7 @@ export function SettingsPage() {
   const chapter = scripture.chapterOf(Math.max(0, charIndex - 1));
 
   const doExport = async () => {
-    const json = await exportAll();
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dalibai-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(`dalibai-backup-${new Date().toISOString().slice(0, 10)}.json`, await exportAll());
   };
 
   return (
@@ -118,10 +112,22 @@ export function SettingsPage() {
       </section>
 
       <section className="section">
+        <h3>调试</h3>
+        <label className="switch-row">
+          <span>相机页显示骨架与识别数值</span>
+          <input
+            type="checkbox"
+            checked={!!settings.debugOverlay}
+            onChange={(e) => void updateSettings({ debugOverlay: e.target.checked })}
+          />
+        </label>
+      </section>
+
+      <section className="section">
         <h3>关于</h3>
         <p className="hint">
           大礼拜计数 v0.1 · 纯本地运行：视频不出设备，数据仅存本机，无任何网络请求与埋点。
-          运动中建议插电使用。
+          运动中建议插电使用。校准提示语音为 AI 合成。
         </p>
       </section>
     </div>

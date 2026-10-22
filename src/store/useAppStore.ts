@@ -72,7 +72,7 @@ interface AppState {
   endSession(): Promise<void>;
   addNearBoundary(): void;
   setMachineState(s: RepState): void;
-  markTrialCompleted(): Promise<void>;
+  markTrialCompleted(trialHeadDropPeak: number): Promise<void>;
 
   deleteSession(id: number): Promise<void>;
   jumpChar(index: number): Promise<void>;
@@ -246,8 +246,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ machineState });
   },
 
-  async markTrialCompleted() {
-    await get().updateSettings({ completedTrialAt: Date.now() });
+  async markTrialCompleted(trialHeadDropPeak) {
+    await get().updateSettings({ completedTrialAt: Date.now(), trialHeadDropPeak });
   },
 
   async deleteSession(id) {

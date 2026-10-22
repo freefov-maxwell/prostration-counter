@@ -4,6 +4,8 @@ import { usePoseLoop } from '../platform/usePoseLoop';
 import { SignalExtractor } from '../engine/signals';
 import { initialMachineState, MachineState, stepMachine } from '../engine/stateMachine';
 import { DEFAULT_THRESHOLDS } from '../engine/thresholds';
+import { personalizeThresholds } from '../engine/trial';
+import { drawPose } from '../platform/overlay';
 import { playGoal, playTick, vibrate } from '../platform/feedback';
 import { scripture } from '../scripture';
 
@@ -16,6 +18,8 @@ function fmtDuration(sec: number): string {
 export function SessionPage() {
   const store = useAppStore();
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const debugRef = useRef<HTMLPreElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [goalReached, setGoalReached] = useState(false);
@@ -25,8 +29,12 @@ export function SessionPage() {
   const machineRef = useRef<MachineState>(initialMachineState());
   const nearFlagRef = useRef(false);
 
+  // 有试拜实测深度则用个性化阈值，否则退回默认值
+  const thRef = useRef(
+    store.settings.trialHeadDropPeak ? personalizeThresholds(store.settings.trialHeadDropPeak) : DEFAULT_THRESHOLDS,
+  );
   if (!extractorRef.current && store.baseline) {
-    extractorRef.current = new SignalExtractor(store.baseline);
+    extractorRef.current = new SignalExtractor(store.baseline, thRef.current);
   }
 
   // 每秒刷新计时显示
@@ -48,8 +56,15 @@ export function SessionPage() {
     // autoPaused 时仍要跑状态机以检测人回来（resumed 事件）；interrupted 时完全停止
     if (s.sessionStatus === 'interrupted' || !extractorRef.current) return;
     const sig = extractorRef.current.update(frame, t);
-    const { state, events } = stepMachine(machineRef.current, sig);
+    const { state, events } = stepMachine(machineRef.current, sig, thRef.current);
     machineRef.current = state;
+    if (s.settings.debugOverlay) {
+      if (canvasRef.current && videoRef.current) drawPose(canvasRef.current, videoRef.current, frame, null, 0);
+      if (debugRef.current)
+        debugRef.current.textContent =
+          `${state.state} q=${sig.quality} head=${sig.headDrop?.toFixed(2)} hip=${sig.hipDrop?.toFixed(2)} ` +
+          `close=${sig.closeness} prone>${thRef.current.proneHeadDrop.toFixed(2)}`;
+    }
 
     // 运动中轻量值守：每拜手部越过警戒线记一次"近界事件"
     if (sig.handMaxY != null && sig.handMaxY > DEFAULT_THRESHOLDS.collisionBlockY) {
@@ -90,6 +105,12 @@ export function SessionPage() {
   return (
     <div className="page camera-page session-page">
       <video ref={videoRef} className="camera-preview" autoPlay playsInline muted />
+      {settings.debugOverlay && (
+        <>
+          <canvas ref={canvasRef} className="camera-preview pose-canvas" />
+          <pre ref={debugRef} className="debug-readout" />
+        </>
+      )}
 
       <div className="session-top">
         <div className="big-count">{sessionCount}</div>

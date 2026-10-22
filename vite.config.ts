@@ -35,7 +35,7 @@ export default defineConfig(({ command }) => {
       workbox: {
         // 模型 + 推理引擎共约 17MB，不做预缓存（否则首屏要背约 39MB），
         // 改为运行时 CacheFirst：校准页首次带进度下载后，离线可用
-        globPatterns: ['**/*.{js,css,html,png,svg,json}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,json,mp3}'],
         navigateFallback: 'index.html',
         runtimeCaching: [
           {

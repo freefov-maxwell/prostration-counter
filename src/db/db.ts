@@ -28,6 +28,10 @@ export interface Settings {
   defaultTarget?: number;
   /** 首次使用强制完成校准（含试拜）；完成后记录时间。 */
   completedTrialAt?: number;
+  /** 试拜实测俯地深度（headDrop 90 分位），用于生成个性化计数阈值。 */
+  trialHeadDropPeak?: number;
+  /** 调试：相机页叠加骨架与识别数值。 */
+  debugOverlay?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {

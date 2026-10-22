@@ -19,6 +19,8 @@ export interface Thresholds {
   proneTorsoAngle: number;
   /** 正面摆放推断 PRONE 的 headDrop 阈值。 */
   proneHeadDrop: number;
+  /** 正面推断 PRONE 是否还要求贴近特征（试拜个性化后由实测俯地深度代替，置 false）。 */
+  proneRequiresCloseness: boolean;
   proneHoldMs: number;
   riseHipDrop: number;
   riseTorsoAngle: number;
@@ -34,8 +36,8 @@ export interface Thresholds {
   motionEnergyFloor: number;
 
   // —— 校准 ——
+  /** 站姿人体高度下限：只防站得太远导致关键点过小；不设上限（过近会表现为头/脚出画）。 */
   targetHeightMin: number;
-  targetHeightMax: number;
   calibrationHoldMs: number;
   inFrameMargin: number;
   /** 人脸变大判定：眼距相对站姿基准放大倍数。 */
@@ -64,6 +66,7 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   proneHipDrop: 0.55,
   proneTorsoAngle: 60,
   proneHeadDrop: 0.5,
+  proneRequiresCloseness: true,
   proneHoldMs: 200,
   riseHipDrop: 0.45,
   riseTorsoAngle: 50,
@@ -73,8 +76,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   lostToPauseMs: 10000,
   motionEnergyFloor: 0.02,
 
-  targetHeightMin: 0.55,
-  targetHeightMax: 0.85,
+  // 手机放地面时，安全距离（约 2.5m）下站姿高度仅占画面约 0.4，旧值 0.55 会逼人站进碰撞区
+  targetHeightMin: 0.25,
   calibrationHoldMs: 2000,
   inFrameMargin: 0.05,
   closenessEyeScale: 1.4,
