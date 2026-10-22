@@ -78,7 +78,7 @@ export function playGoal(): void {
   playQing(0.45, 1046);
 }
 
-/** 预生成的提示语音（public/voice/*.mp3，由 scripts/gen-voice.py 生成，键与 scripts/voice-lines.json 一致）。 */
+/** 预生成的提示语音（public/voice/*.mp3）。 */
 export type VoiceKey =
   | 'enter'
   | 'headOut'

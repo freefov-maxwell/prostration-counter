@@ -221,7 +221,7 @@ button {
   accent-color: var(--ink);
 }
 
-/* —— 相机页（校准 / 运动中） —— */
+/* —— 相机页（准备 / 运动中） —— */
 .camera-page {
   max-width: none;
   padding: 0;

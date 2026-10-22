@@ -12,7 +12,7 @@ import { scripture } from '../scripture';
 
 type PositionKey = 'enter' | 'headOut' | 'feetOut' | 'tooFar' | 'pose' | 'hold';
 
-/** 远距离可读的大字提示（语音同步播报 scripts/voice-lines.json 中的完整句子）。 */
+/** 远距离可读的大字提示。 */
 const POSITION_TEXT: Record<PositionKey, string> = {
   enter: '请走入画面',
   headOut: '头部出画\n请后退一步',
