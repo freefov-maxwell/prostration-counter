@@ -46,7 +46,7 @@ async function downloadWithProgress(
 }
 
 /**
- * 模型懒加载：首次进入校准页才加载，之后走 Service Worker 运行时缓存（CacheFirst）离线可用。
+ * 模型懒加载：首次进入运动页才加载，之后走 Service Worker 运行时缓存（CacheFirst）离线可用。
  * 引擎（JS + WASM）与姿态模型并行下载，进度合并为一条总进度；
  * 总量以 public/pose-assets.json（构建期生成的解压后大小清单）为准——服务器开 gzip/brotli 时
  * Content-Length 是压缩后大小，与流式读到的解压后字节不一致，不能作为进度口径。

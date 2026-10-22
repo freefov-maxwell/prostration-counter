@@ -3,7 +3,6 @@ import { useAppStore } from './store/useAppStore';
 import { checkSupport } from './platform/support';
 import { HomePage } from './pages/HomePage';
 import { PreparePage } from './pages/PreparePage';
-import { CalibratePage } from './pages/CalibratePage';
 import { SessionPage } from './pages/SessionPage';
 import { SummaryPage } from './pages/SummaryPage';
 import { StatsPage } from './pages/StatsPage';
@@ -34,8 +33,6 @@ export function App() {
   switch (page) {
     case 'prepare':
       return <PreparePage />;
-    case 'calibrate':
-      return <CalibratePage />;
     case 'session':
       return <SessionPage />;
     case 'summary':

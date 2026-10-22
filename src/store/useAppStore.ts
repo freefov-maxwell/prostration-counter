@@ -9,14 +9,12 @@ import {
   Session,
   Settings,
 } from '../db/db';
-import { Baseline } from '../engine/types';
 import { RepState } from '../engine/stateMachine';
 import { scripture } from '../scripture';
 
 export type Page =
   | 'home'
   | 'prepare'
-  | 'calibrate'
   | 'session'
   | 'summary'
   | 'stats'
@@ -30,7 +28,6 @@ export interface SessionSummary {
   durationSec: number;
   avgPaceSec: number | null;
   target: number | null;
-  nearBoundaryEvents: number;
 }
 
 interface AppState {
@@ -48,9 +45,7 @@ interface AppState {
   startedAt: number;
   activeMs: number;
   resumeMark: number;
-  nearBoundaryEvents: number;
   machineState: RepState;
-  baseline: Baseline | null;
   lastSummary: SessionSummary | null;
 
   init(): Promise<void>;
@@ -59,8 +54,8 @@ interface AppState {
   refreshSessions(): Promise<void>;
 
   beginPrepare(): void;
-  beginCalibration(target: number | null): void;
-  setBaseline(b: Baseline): void;
+  beginSession(target: number | null): void;
+  /** 起始站位完成、开始计数：会话计时从此刻算起。 */
   startRunning(): void;
   onRepCompleted(): void;
   adjust(delta: number): void;
@@ -70,9 +65,7 @@ interface AppState {
   interrupt(): void;
   resumeFromInterrupt(): void;
   endSession(): Promise<void>;
-  addNearBoundary(): void;
   setMachineState(s: RepState): void;
-  markTrialCompleted(trialHeadDropPeak: number): Promise<void>;
 
   deleteSession(id: number): Promise<void>;
   jumpChar(index: number): Promise<void>;
@@ -98,9 +91,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   startedAt: 0,
   activeMs: 0,
   resumeMark: 0,
-  nearBoundaryEvents: 0,
   machineState: 'IDLE',
-  baseline: null,
   lastSummary: null,
 
   async init() {
@@ -131,12 +122,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ page: 'prepare' });
   },
 
-  beginCalibration(target) {
-    set({ page: 'calibrate', target });
-  },
-
-  setBaseline(baseline) {
-    set({ baseline });
+  beginSession(target) {
+    get().startRunning();
+    set({ target });
   },
 
   startRunning() {
@@ -149,7 +137,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       startedAt: now,
       activeMs: 0,
       resumeMark: now,
-      nearBoundaryEvents: 0,
       machineState: 'IDLE',
     });
   },
@@ -221,7 +208,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       durationSec,
       avgPaceSec: s.sessionCount > 0 ? Math.round((durationSec / s.sessionCount) * 10) / 10 : null,
       target: s.target,
-      nearBoundaryEvents: s.nearBoundaryEvents,
     };
     // 次数为 0 的会话不保存
     if (s.sessionCount > 0) {
@@ -238,16 +224,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ lastSummary: summary, page: 'summary' });
   },
 
-  addNearBoundary() {
-    set({ nearBoundaryEvents: get().nearBoundaryEvents + 1 });
-  },
-
   setMachineState(machineState) {
     set({ machineState });
-  },
-
-  async markTrialCompleted(trialHeadDropPeak) {
-    await get().updateSettings({ completedTrialAt: Date.now(), trialHeadDropPeak });
   },
 
   async deleteSession(id) {

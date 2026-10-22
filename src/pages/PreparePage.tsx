@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore';
 import { initAudio } from '../platform/feedback';
 
 export function PreparePage() {
-  const { settings, updateSettings, beginCalibration, navigate } = useAppStore();
+  const { settings, updateSettings, beginSession, navigate } = useAppStore();
   const [targetChoice, setTargetChoice] = useState<'none' | '108' | 'custom'>(
     settings.defaultTarget === 108 ? '108' : settings.defaultTarget ? 'custom' : 'none',
   );
@@ -23,7 +23,7 @@ export function PreparePage() {
     initAudio();
     const target = resolveTarget();
     void updateSettings({ defaultTarget: target ?? undefined });
-    beginCalibration(target);
+    beginSession(target);
   };
 
   return (
@@ -89,6 +89,14 @@ export function PreparePage() {
           />
         </label>
         <label className="switch-row">
+          <span>下拜识别提示音（颂钵）</span>
+          <input
+            type="checkbox"
+            checked={settings.descentCueOn !== false}
+            onChange={(e) => void updateSettings({ descentCueOn: e.target.checked })}
+          />
+        </label>
+        <label className="switch-row">
           <span>震动（Android）</span>
           <input
             type="checkbox"
@@ -99,7 +107,7 @@ export function PreparePage() {
       </section>
 
       <button className="btn-primary btn-huge" onClick={start}>
-        进入校准
+        开始
       </button>
     </div>
   );

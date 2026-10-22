@@ -13,7 +13,7 @@ export function SummaryPage() {
     navigate('home');
     return null;
   }
-  const { count, durationSec, avgPaceSec, target, nearBoundaryEvents } = lastSummary;
+  const { count, durationSec, avgPaceSec, target } = lastSummary;
   const pct = ((charIndex / scripture.totalChars) * 100).toFixed(1);
 
   return (
@@ -47,9 +47,6 @@ export function SummaryPage() {
           《{scripture.title}》第 {charIndex} 字 / 共 {scripture.totalChars} 字（{pct}%），第{' '}
           {scripture.chapterOf(Math.max(0, charIndex - 1))} 章
         </p>
-      )}
-      {nearBoundaryEvents > 0 && (
-        <p className="warning">本次手机位置偏近（近界 {nearBoundaryEvents} 次），建议下次把手机往前挪一点。</p>
       )}
       {count === 0 && <p className="hint center">次数为 0，本次未保存记录。</p>}
 

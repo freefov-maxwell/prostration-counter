@@ -9,39 +9,68 @@ export function initAudio(): void {
   ctx?.resume().catch(() => undefined);
 }
 
-/** 短促木鱼声：三角形波高频起振 + 快速指数衰减。 */
-export function playTick(): void {
-  if (!ctx || ctx.state !== 'running') return;
-  const t0 = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(880, t0);
-  osc.frequency.exponentialRampToValueAtTime(440, t0 + 0.06);
-  gain.gain.setValueAtTime(0.5, t0);
-  gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(t0);
-  osc.stop(t0 + 0.2);
-}
+/** 一个分音：频率倍数、峰值音量、衰减时长（秒）。 */
+type Partial = [ratio: number, gain: number, decay: number];
 
-/** 目标达成音：两声上行。 */
-export function playGoal(): void {
+/** 敲击类乐器：多个正弦分音同时起振、各自指数衰减；略失谐的分音对产生拍频（颂钵的"嗡嗡"感）。 */
+function strike(f0: number, partials: Partial[], attack: number, master: number, delay = 0): void {
   if (!ctx || ctx.state !== 'running') return;
   const c = ctx;
-  const t0 = c.currentTime;
-  [523, 784].forEach((freq, i) => {
+  const t0 = c.currentTime + delay;
+  const out = c.createGain();
+  out.gain.value = master;
+  out.connect(c.destination);
+  for (const [ratio, gain, decay] of partials) {
     const osc = c.createOscillator();
-    const gain = c.createGain();
+    const g = c.createGain();
     osc.type = 'sine';
-    osc.frequency.value = freq;
-    const start = t0 + i * 0.18;
-    gain.gain.setValueAtTime(0.4, start);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
-    osc.connect(gain).connect(c.destination);
-    osc.start(start);
-    osc.stop(start + 0.45);
-  });
+    osc.frequency.value = f0 * ratio;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0 + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + decay);
+    osc.connect(g).connect(out);
+    osc.start(t0);
+    osc.stop(t0 + attack + decay + 0.05);
+  }
+}
+
+/** 颂钵（低沉、悠长）：下拜已识别。分音比取自典型颂钵频谱。 */
+export function playBowl(): void {
+  strike(
+    196,
+    [
+      [1, 0.6, 3.2],
+      [1.007, 0.4, 3.2],
+      [2.76, 0.22, 2],
+      [5.4, 0.1, 1.1],
+      [8.93, 0.04, 0.6],
+    ],
+    0.02,
+    0.55,
+  );
+}
+
+/** 磬（清亮、短促）：一拜完成计数。 */
+export function playQing(delay = 0, f0 = 784): void {
+  strike(
+    f0,
+    [
+      [1, 0.55, 1.6],
+      [1.004, 0.3, 1.6],
+      [2.42, 0.22, 0.9],
+      [4.13, 0.1, 0.45],
+      [6.38, 0.05, 0.25],
+    ],
+    0.003,
+    0.45,
+    delay,
+  );
+}
+
+/** 目标达成：两声上行的磬。 */
+export function playGoal(): void {
+  playQing(0, 784);
+  playQing(0.45, 1046);
 }
 
 /** iOS 无 Vibration API，静默跳过。 */
@@ -49,19 +78,18 @@ export function vibrate(ms: number | number[]): void {
   if ('vibrate' in navigator) navigator.vibrate(ms);
 }
 
-/** 预生成的校准语音（public/voice/*.mp3，由 scripts/gen-voice.py 生成，键与 scripts/voice-lines.json 一致）。 */
+/** 预生成的提示语音（public/voice/*.mp3，由 scripts/gen-voice.py 生成，键与 scripts/voice-lines.json 一致）。 */
 export type VoiceKey =
   | 'enter'
   | 'headOut'
   | 'feetOut'
   | 'tooFar'
   | 'hold'
-  | 'trial'
-  | 'safe'
-  | 'close'
-  | 'tooClose'
-  | 'wrongDirection'
-  | 'retry';
+  | 'ready'
+  | 'discarded'
+  | 'paused'
+  | 'resumed'
+  | 'goal';
 
 const voices = new Map<VoiceKey, Promise<AudioBuffer | null>>();
 let voiceSrc: AudioBufferSourceNode | null = null;

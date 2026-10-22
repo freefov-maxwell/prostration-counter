@@ -346,6 +346,90 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+/* 计数圆环：下拜中填充琥珀色，上膛后填满 */
+.count-ring {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.ring-track,
+.ring-fill {
+  fill: none;
+  stroke-width: 8;
+}
+
+.ring-track {
+  stroke: rgba(245, 241, 232, 0.25);
+}
+
+.ring-fill {
+  stroke: #f0a830;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.15s linear;
+}
+
+.count-pop {
+  animation: count-pop 0.5s ease-out;
+}
+
+@keyframes count-pop {
+  0% {
+    transform: scale(1.35);
+    color: #8ff0a4;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 屏幕四周光晕：余光可见，站远或趴下时也能感知 */
+.edge-glow,
+.edge-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.edge-glow {
+  box-shadow: inset 0 0 0 0 transparent;
+  transition: box-shadow 0.4s ease;
+}
+
+.edge-glow.armed {
+  box-shadow: inset 0 0 60px 24px rgba(240, 168, 48, 0.85);
+}
+
+.edge-flash {
+  animation: edge-flash 1s ease-out forwards;
+}
+
+@keyframes edge-flash {
+  0% {
+    box-shadow: inset 0 0 70px 30px rgba(67, 196, 90, 0.95);
+  }
+  100% {
+    box-shadow: inset 0 0 70px 30px rgba(67, 196, 90, 0);
+  }
+}
+
+.position-hint {
+  margin: 16px auto 0;
+  max-width: 320px;
+  color: rgba(245, 241, 232, 0.85);
+}
+
 .summary-count {
   color: var(--ink);
   text-align: center;

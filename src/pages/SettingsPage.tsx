@@ -87,6 +87,14 @@ export function SettingsPage() {
           />
         </label>
         <label className="switch-row">
+          <span>下拜识别提示音（颂钵）</span>
+          <input
+            type="checkbox"
+            checked={settings.descentCueOn !== false}
+            onChange={(e) => void updateSettings({ descentCueOn: e.target.checked })}
+          />
+        </label>
+        <label className="switch-row">
           <span>震动（Android）</span>
           <input
             type="checkbox"
@@ -127,7 +135,7 @@ export function SettingsPage() {
         <h3>关于</h3>
         <p className="hint">
           大礼拜计数 v0.1 · 纯本地运行：视频不出设备，数据仅存本机，无任何网络请求与埋点。
-          运动中建议插电使用。校准提示语音为 AI 合成。
+          运动中建议插电使用。提示语音为 AI 合成。
         </p>
       </section>
     </div>
