@@ -2,6 +2,48 @@ import { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { initAudio } from '../platform/feedback';
 
+/** 侧视示意：站立预备 → 跪下 → 趴下伸手，手指前方给手机留出距离。三帧循环。 */
+function PlacementGuide() {
+  return (
+    <section className="section">
+      <h3>手机摆放</h3>
+      <svg className="placement" viewBox="0 0 320 160" role="img" aria-label="手机摆放示意：手机竖放在地上略向后仰，人趴下伸直手臂后，指尖前方留约 10 到 20 厘米">
+        <line className="pg-floor" x1="8" y1="128" x2="312" y2="128" />
+        <g className="pg-phone">
+          <g transform="rotate(10 292 128)">
+            <rect x="288.5" y="82" width="7" height="46" rx="1.5" />
+            <circle cx="290.5" cy="87" r="1.4" className="pg-lens" />
+          </g>
+          <text x="292" y="74" textAnchor="middle">手机</text>
+        </g>
+        <g className="pg-frame pg-f1">
+          <polygon className="pg-fov" points="289,88 24,10 24,128" />
+          <circle cx="70" cy="52" r="8" />
+          <path d="M70 61 L70 92 M70 92 L65 127 M70 92 L75 127 M70 65 L67 92 M70 65 L73 92" />
+          <text x="12" y="20">① 站直、双手下垂，全身入镜</text>
+        </g>
+        <g className="pg-frame pg-f2">
+          <circle cx="122" cy="96" r="8" />
+          <path d="M55 127 L78 127 L82 104 L112 100 M112 100 L118 127" />
+          <text x="12" y="20">② 跪下、手撑地</text>
+        </g>
+        <g className="pg-frame pg-f3">
+          <circle cx="214" cy="111" r="8" />
+          <path d="M60 124 L130 123 L205 121 M205 121 L266 124" />
+          <path className="pg-dim" d="M268 138 L286 138 M268 133 L268 143 M286 133 L286 143" />
+          <text x="277" y="154" textAnchor="middle" className="pg-dim-label">留 10–20cm</text>
+          <text x="12" y="20">③ 趴下伸手，指尖碰不到手机</text>
+        </g>
+      </svg>
+      <ul className="placement-tips">
+        <li>手机竖放，屏幕朝向你，底部着地、略向后仰（可靠在水杯或书上）</li>
+        <li>放在你趴下伸直手臂后，指尖前方约 10–20 厘米处（碰不到即可）</li>
+        <li>站在起拜位置时，头到脚都要在画面里；光线充足效果更好</li>
+      </ul>
+    </section>
+  );
+}
+
 export function PreparePage() {
   const { settings, updateSettings, beginSession, navigate } = useAppStore();
   const [targetChoice, setTargetChoice] = useState<'none' | '108' | 'custom'>(
@@ -35,6 +77,8 @@ export function PreparePage() {
         <h2>准备</h2>
         <span />
       </header>
+
+      <PlacementGuide />
 
       <section className="section">
         <h3>本次目标</h3>
@@ -94,14 +138,6 @@ export function PreparePage() {
             type="checkbox"
             checked={settings.descentCueOn !== false}
             onChange={(e) => void updateSettings({ descentCueOn: e.target.checked })}
-          />
-        </label>
-        <label className="switch-row">
-          <span>震动（Android）</span>
-          <input
-            type="checkbox"
-            checked={settings.vibrationOn}
-            onChange={(e) => void updateSettings({ vibrationOn: e.target.checked })}
           />
         </label>
       </section>

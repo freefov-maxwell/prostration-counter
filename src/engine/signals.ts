@@ -178,10 +178,13 @@ export class SignalExtractor {
     else if (m.earW != null && b.earW0 > 0) out.scale = this.recent.earW! / b.earW0;
     out.upright = m.upright;
 
-    const terms: number[] = [];
-    if (out.headDrop != null) terms.push(out.headDrop / th.lowHeadDrop);
-    if (out.scale != null) terms.push((out.scale - 1) / (th.lowScale - 1));
-    if (terms.length) this.lastLowness = Math.max(...terms);
+    // 以远近比为主：大礼拜会扑向镜头，原地蹲起不会；头部下降只在人确实靠近时才计入
+    if (out.scale != null) {
+      const scaleTerm = (out.scale - 1) / (th.lowScale - 1);
+      const headTerm =
+        out.headDrop != null && out.scale >= th.lowHeadScaleMin ? out.headDrop / th.lowHeadDrop : -Infinity;
+      this.lastLowness = Math.max(scaleTerm, headTerm);
+    }
     out.lowness = this.lastLowness;
 
     out.standing =
@@ -194,6 +197,10 @@ export class SignalExtractor {
       out.scale >= th.standScaleMin &&
       out.scale <= th.standScaleMax;
     return out;
+  }
+
+  getBaseline(): Baseline {
+    return this.baseline;
   }
 
   /** 站直确认后调用：基准向最近的站姿测量值靠拢，容忍每拜之间站位前后移动。 */

@@ -55,7 +55,7 @@ export interface FrameSignals {
   upright: boolean;
   /** 严格站直：远近、高度、身高、直立、可见脚踝同时满足。 */
   standing: boolean;
-  /** 低位程度：max(headDrop / 阈值, (scale − 1) / 阈值)，≥1 即低位。人丢失时保持上一有效值。 */
+  /** 低位程度：以 (scale − 1) / 阈值 为主，人靠近镜头时才计入 headDrop；≥1 即低位。人丢失时保持上一有效值。 */
   lowness: number;
 }
 

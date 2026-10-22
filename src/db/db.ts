@@ -23,7 +23,6 @@ export interface ScriptureProgress {
 export interface Settings {
   id: number;
   soundOn: boolean;
-  vibrationOn: boolean;
   scriptureEnabled: boolean;
   defaultTarget?: number;
   /** 下拜识别提示音（颂钵），未设置视为开启。 */
@@ -35,7 +34,6 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   id: 1,
   soundOn: true,
-  vibrationOn: true,
   scriptureEnabled: true,
 };
 

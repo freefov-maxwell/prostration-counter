@@ -72,9 +72,19 @@ describe('SignalExtractor 多信号姿态判定', () => {
     expect(sig.lowness).toBeGreaterThanOrEqual(1);
   });
 
-  it('蹲：身高明显变矮 → 不是站直', () => {
-    const squat = standingFrame({ [KP.nose]: kp(0.5, 0.45), [KP.leftShoulder]: kp(0.4, 0.55), [KP.rightShoulder]: kp(0.6, 0.55) });
-    expect(settle(new SignalExtractor(baseline), squat).standing).toBe(false);
+  it('原地深蹲：头降很多、身高变矮，但人没靠近镜头 → 不是站直，也不算低位', () => {
+    // 鼻子降 0.45/0.8 ≈ 0.56H（超过头部下降阈值），肩宽不变
+    const squat = standingFrame({ [KP.nose]: kp(0.5, 0.55), [KP.leftShoulder]: kp(0.4, 0.65), [KP.rightShoulder]: kp(0.6, 0.65) });
+    const sig = settle(new SignalExtractor(baseline), squat);
+    expect(sig.headDrop!).toBeGreaterThan(0.45);
+    expect(sig.standing).toBe(false);
+    expect(sig.lowness).toBeLessThan(0.3); // 连下拜趋势都不触发
+  });
+
+  it('扑向镜头途中：远近比 ≥ 1.25 后头部下降开始计入低位', () => {
+    const lean = standingFrame({ [KP.nose]: kp(0.5, 0.5), [KP.leftShoulder]: kp(0.35, 0.6), [KP.rightShoulder]: kp(0.65, 0.6) });
+    const sig = settle(new SignalExtractor(baseline), lean); // 远近比 1.5，头降 0.5H
+    expect(sig.lowness).toBeGreaterThanOrEqual(1);
   });
 
   it('人丢失时 lowness 保持上一有效值', () => {

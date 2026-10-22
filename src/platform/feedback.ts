@@ -67,15 +67,15 @@ export function playQing(delay = 0, f0 = 784): void {
   );
 }
 
+/** 倒数节拍：短促轻响。 */
+export function playTick(): void {
+  strike(1200, [[1, 0.5, 0.12], [2.7, 0.15, 0.06]], 0.002, 0.35);
+}
+
 /** 目标达成：两声上行的磬。 */
 export function playGoal(): void {
   playQing(0, 784);
   playQing(0.45, 1046);
-}
-
-/** iOS 无 Vibration API，静默跳过。 */
-export function vibrate(ms: number | number[]): void {
-  if ('vibrate' in navigator) navigator.vibrate(ms);
 }
 
 /** 预生成的提示语音（public/voice/*.mp3，由 scripts/gen-voice.py 生成，键与 scripts/voice-lines.json 一致）。 */

@@ -22,6 +22,8 @@ export interface Thresholds {
   lowHeadDrop: number;
   /** 低位：远近比达到此值即 lowness = 1（脸朝下看不到鼻子时靠肩宽）。 */
   lowScale: number;
+  /** 头部下降只在远近比 ≥ 此值（人确实扑向镜头）时才计入低位：原地蹲起头降很多但远近比不变。 */
+  lowHeadScaleMin: number;
 
   // —— 动作识别（时序） ——
   /** 离开站直且 lowness ≥ 此值，才算开始下拜。 */
@@ -52,8 +54,12 @@ export interface Thresholds {
   readyLegRatio: number;
   /** 起始站位：保持期间鼻子位置最大浮动（帧高比例），超出视为没站稳。 */
   readyMaxDrift: number;
-  /** 起始站位：合格姿态需保持的时长。 */
-  positionHoldMs: number;
+  /** 起始站位：姿态合格后的倒数时长，期间可继续微调。 */
+  countdownMs: number;
+  /** 起始站位：姿态短暂不合格的宽限，超过则倒数重来。 */
+  readyGraceMs: number;
+  /** 起始站位：倒数结束时取最后这段时间的姿态作基准，且需在此段内站稳。 */
+  readyWindowMs: number;
   /** 头 / 脚距画面边缘的最小余量。 */
   inFrameMargin: number;
 }
@@ -70,6 +76,7 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   uprightMaxAngle: 25,
   lowHeadDrop: 0.45,
   lowScale: 1.6,
+  lowHeadScaleMin: 1.25,
 
   descendLowness: 0.3,
   descendConfirmMs: 150,
@@ -86,6 +93,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   targetHeightMin: 0.25,
   readyLegRatio: 1.3,
   readyMaxDrift: 0.03,
-  positionHoldMs: 1500,
+  countdownMs: 5000,
+  readyGraceMs: 500,
+  readyWindowMs: 1500,
   inFrameMargin: 0.05,
 };

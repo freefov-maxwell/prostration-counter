@@ -3,10 +3,10 @@ import { useAppStore, sessionDurationSec } from '../store/useAppStore';
 import { usePoseLoop } from '../platform/usePoseLoop';
 import { LoadProgress } from '../platform/pose';
 import { analyzeStandingFrame, SignalExtractor } from '../engine/signals';
-import { initialMachineState, MachineState, RepState, stepMachine } from '../engine/stateMachine';
+import { initialMachineState, MachineEvent, MachineState, RepState, stepMachine } from '../engine/stateMachine';
 import { DEFAULT_THRESHOLDS } from '../engine/thresholds';
-import { FrameSignals, PoseFrame } from '../engine/types';
-import { playBowl, playGoal, playQing, playVoice, preloadVoices, vibrate, VoiceKey } from '../platform/feedback';
+import { Baseline, FrameSignals, PoseFrame } from '../engine/types';
+import { playBowl, playGoal, playQing, playTick, playVoice, preloadVoices, VoiceKey } from '../platform/feedback';
 import { downloadJson, drawPose } from '../platform/overlay';
 import { scripture } from '../scripture';
 
@@ -26,8 +26,8 @@ const POSITION_TEXT: Record<PositionKey, string> = {
 const VOICE_SETTLE_MS = 800;
 /** 站位问题持续存在时的重复播报间隔（人站得远，可能没听清）。 */
 const VOICE_REPEAT_MS = 8000;
-/** 调试导出保留的帧数（约 3 分钟 @30fps）。 */
-const DEBUG_FRAMES = 5400;
+/** 调试导出保留最近这么久的逐帧数据（含站位阶段）。 */
+const DEBUG_WINDOW_MS = 5 * 60 * 1000;
 const RING_C = 2 * Math.PI * 92;
 
 function fmtDuration(sec: number): string {
@@ -42,6 +42,16 @@ function median(nums: number[]): number {
 }
 
 const isArmed = (s: RepState) => s === 'PRONE' || s === 'RISING';
+const r3 = (v: number) => Math.round(v * 1000) / 1000;
+const r2 = (v: number) => Math.round(v * 100) / 100;
+
+/** 调试导出的一帧：原始关键点（33 × [x, y, z, visibility]）+ 计数阶段的信号与状态，可离线回放任意版本算法。 */
+interface DebugFrame {
+  t: number;
+  kp: number[] | null;
+  st?: RepState;
+  sig?: Pick<FrameSignals, 'quality' | 'standing' | 'lowness' | 'headDrop' | 'scale' | 'heightRatio' | 'upright'>;
+}
 
 export function SessionPage() {
   const store = useAppStore();
@@ -55,16 +65,18 @@ export function SessionPage() {
   const [counting, setCounting] = useState(false);
   const [posKey, setPosKey] = useState<PositionKey>('enter');
   const [flashKey, setFlashKey] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const [progress, setProgress] = useState<LoadProgress | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const [, setTick] = useState(0);
 
   const countingRef = useRef(false);
-  const stableSinceRef = useRef<number | null>(null);
-  const posSamplesRef = useRef<{ H: number; noseY: number; sw: number; ew: number }[]>([]);
+  /** 倒数：开始时刻、姿态不合格的起点、上次显示的秒数。 */
+  const readyRef = useRef({ since: null as number | null, lostAt: null as number | null, lastSec: 0 });
+  const posSamplesRef = useRef<{ t: number; H: number; noseY: number; sw: number; ew: number }[]>([]);
   const extractorRef = useRef<SignalExtractor | null>(null);
   const machineRef = useRef<MachineState>(initialMachineState());
-  const debugFramesRef = useRef<(FrameSignals & { state: RepState })[]>([]);
+  const debugRef2 = useRef({ frames: [] as DebugFrame[], events: [] as (MachineEvent & { t: number })[], baseline0: null as Baseline | null });
   const voiceRef = useRef({ key: null as VoiceKey | null, since: 0, spoken: null as VoiceKey | null, at: 0 });
 
   useEffect(() => {
@@ -134,25 +146,51 @@ export function SessionPage() {
       debugRef.current.textContent =
         `H=${a.height?.toFixed(3)} 肩宽=${a.shoulderW?.toFixed(3)} 直立=${a.upright} 腿直=${a.legsStraight} 手垂=${a.armsDown}`;
 
-    // 保持期间晃动过大也视为没站稳，重新计时
-    const ys = posSamplesRef.current.map((s) => s.noseY);
-    const drifted = ok && ys.length > 0 && Math.max(...ys, a.noseY!) - Math.min(...ys, a.noseY!) > th.readyMaxDrift;
-    if (!ok || drifted) {
-      stableSinceRef.current = null;
-      posSamplesRef.current = [];
+    // 倒数期间可继续微调；姿态短暂不合格（< readyGraceMs）不打断，超过则倒数重来
+    const r = readyRef.current;
+    const samples = posSamplesRef.current;
+    if (ok) {
+      r.lostAt = null;
+      if (r.since == null) {
+        r.since = t;
+        r.lastSec = 0;
+      }
+      samples.push({ t, H: a.height!, noseY: a.noseY!, sw: a.shoulderW!, ew: a.earW ?? 0 });
+      while (samples.length && t - samples[0].t > th.readyWindowMs) samples.shift();
+    } else if (r.since != null) {
+      r.lostAt ??= t;
+      if (t - r.lostAt > th.readyGraceMs) {
+        r.since = null;
+        posSamplesRef.current = [];
+        setCountdown(null);
+      }
+    }
+    if (r.since == null) return;
+    const remain = Math.ceil((th.countdownMs - (t - r.since)) / 1000);
+    if (remain > 0) {
+      if (remain !== r.lastSec) {
+        r.lastSec = remain;
+        setCountdown(remain);
+        if (useAppStore.getState().settings.soundOn) playTick();
+      }
       return;
     }
-    stableSinceRef.current ??= t;
-    posSamplesRef.current.push({ H: a.height!, noseY: a.noseY!, sw: a.shoulderW!, ew: a.earW ?? 0 });
-    if (t - stableSinceRef.current < th.positionHoldMs) return;
+    // 倒数结束：基准取最后一段姿态，且这段内需站稳，否则继续等
+    const ys = samples.map((s) => s.noseY);
+    if (!ok || samples.length < 5 || Math.max(...ys) - Math.min(...ys) > th.readyMaxDrift) {
+      setCountdown(0);
+      return;
+    }
 
-    const ss = posSamplesRef.current;
-    extractorRef.current = new SignalExtractor({
-      H: median(ss.map((s) => s.H)),
-      noseY0: median(ss.map((s) => s.noseY)),
-      shoulderW0: median(ss.map((s) => s.sw)),
-      earW0: median(ss.map((s) => s.ew)),
-    });
+    const baseline: Baseline = {
+      H: median(samples.map((s) => s.H)),
+      noseY0: median(samples.map((s) => s.noseY)),
+      shoulderW0: median(samples.map((s) => s.sw)),
+      earW0: median(samples.map((s) => s.ew)),
+    };
+    debugRef2.current.baseline0 = baseline;
+    extractorRef.current = new SignalExtractor(baseline);
+    setCountdown(null);
     machineRef.current = initialMachineState(t);
     countingRef.current = true;
     setCounting(true);
@@ -166,6 +204,15 @@ export function SessionPage() {
     const s = useAppStore.getState();
     // autoPaused 时仍要跑状态机以检测人回来（resumed 事件）；interrupted 时完全停止
     if (s.sessionStatus === 'interrupted') return;
+    const dbg = s.settings.debugOverlay ? debugRef2.current : null;
+    if (dbg) {
+      dbg.frames.push({
+        t: Math.round(t),
+        kp: frame ? frame.flatMap((k) => [r3(k.x), r3(k.y), r2(k.z), r2(k.visibility)]) : null,
+      });
+      const cut = dbg.frames.findIndex((f) => t - f.t <= DEBUG_WINDOW_MS);
+      if (cut > 0) dbg.frames.splice(0, cut);
+    }
     if (!countingRef.current || !extractorRef.current) {
       onPositionFrame(frame, t);
       return;
@@ -178,15 +225,24 @@ export function SessionPage() {
     const progress = isArmed(state.state) ? 1 : state.state === 'DESCENDING' ? Math.min(1, Math.max(0, sig.lowness)) : 0;
     ringRef.current?.setAttribute('stroke-dashoffset', String(RING_C * (1 - progress)));
 
-    if (s.settings.debugOverlay) {
+    if (dbg) {
       if (canvasRef.current && videoRef.current) drawPose(canvasRef.current, videoRef.current, frame, null, 0);
       if (debugRef.current)
         debugRef.current.textContent =
           `${state.state} q=${sig.quality} 站直=${sig.standing} 低位=${sig.lowness.toFixed(2)} ` +
           `头降=${sig.headDrop?.toFixed(2)} 远近=${sig.scale?.toFixed(2)} 身高=${sig.heightRatio?.toFixed(2)} 直立=${sig.upright}`;
-      const buf = debugFramesRef.current;
-      buf.push({ ...sig, state: state.state });
-      if (buf.length > DEBUG_FRAMES) buf.splice(0, buf.length - DEBUG_FRAMES);
+      const last = dbg.frames[dbg.frames.length - 1];
+      last.st = state.state;
+      last.sig = {
+        quality: sig.quality,
+        standing: sig.standing,
+        lowness: r3(sig.lowness),
+        headDrop: sig.headDrop == null ? null : r3(sig.headDrop),
+        scale: sig.scale == null ? null : r3(sig.scale),
+        heightRatio: sig.heightRatio == null ? null : r3(sig.heightRatio),
+        upright: sig.upright,
+      };
+      for (const e of events) dbg.events.push({ ...e, t: Math.round(t) });
     }
 
     const sound = s.settings.soundOn;
@@ -198,14 +254,12 @@ export function SessionPage() {
         setFlashKey((k) => k + 1);
         const after = useAppStore.getState();
         if (sound) playQing();
-        if (after.settings.vibrationOn) vibrate(30);
         if (after.target != null && after.sessionCount === after.target) {
           setGoalReached(true);
           if (sound) {
             playGoal();
             setTimeout(() => speak('goal', performance.now()), 1200);
           }
-          if (after.settings.vibrationOn) vibrate([60, 80, 60]);
         }
       } else if (e.type === 'repDiscarded') {
         speak('discarded', t);
@@ -225,11 +279,24 @@ export function SessionPage() {
 
   const stage = usePoseLoop(videoRef, { onFrame, onError: setError, onProgress: setProgress }, retryKey);
 
-  const exportFrames = () =>
+  const exportFrames = () => {
+    const d = debugRef2.current;
     downloadJson(
       `dalibai-session-${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
-      JSON.stringify({ thresholds: DEFAULT_THRESHOLDS, frames: debugFramesRef.current }),
+      JSON.stringify({
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        video: { w: videoRef.current?.videoWidth, h: videoRef.current?.videoHeight },
+        kpFormat: 'BlazePose 33 点，每点 [x, y, z, visibility]，x/y 为帧宽高归一化',
+        thresholds: DEFAULT_THRESHOLDS,
+        baseline0: d.baseline0,
+        baseline: extractorRef.current?.getBaseline() ?? null,
+        events: d.events,
+        frames: d.frames,
+      }),
     );
+  };
 
   const { sessionCount, target, settings, charIndex, sessionStatus, machineState } = store;
   const durationSec = sessionDurationSec(store);
@@ -296,10 +363,20 @@ export function SessionPage() {
           )}
           {stage === 'ready' && !error && (
             <>
-              <div className={`guide-big ${posKey === 'hold' ? 'tone-ok' : 'tone-warn'}`}>{POSITION_TEXT[posKey]}</div>
+              <div className={`guide-big ${posKey === 'hold' ? 'tone-ok' : 'tone-warn'}`}>
+                {POSITION_TEXT[posKey]}
+                {countdown != null && <div className="countdown-num">{countdown > 0 ? countdown : '…'}</div>}
+              </div>
               <p className="hint position-hint">
-                手机立于地面略向后仰，放在趴下后手臂前伸碰不到的位置。全身站进虚线框，框变绿后保持不动即开始。
+                全身站进虚线框，站直、双手自然下垂。框变绿后倒数 5 秒，倒数中仍可微调位置。
               </p>
+              {debug && (
+                <div className="btn-row">
+                  <button className="btn-secondary" onClick={exportFrames}>
+                    导出运动数据
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

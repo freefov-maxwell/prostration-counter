@@ -424,6 +424,120 @@ button {
   }
 }
 
+.countdown-num {
+  font-size: 110px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.scripture-context {
+  margin: 4px 0 8px;
+  padding: 10px 12px;
+  background: var(--card);
+  border-radius: 10px;
+  line-height: 1.9;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.scripture-context-current {
+  color: var(--cinnabar);
+  font-weight: 700;
+  font-size: 1.25em;
+  padding: 0 2px;
+}
+
+/* —— 准备页：摆放示意动画 —— */
+.placement {
+  width: 100%;
+  height: auto;
+  background: var(--card);
+  border-radius: 12px;
+}
+
+.placement text {
+  font-size: 11px;
+  fill: var(--ink);
+}
+
+.pg-floor {
+  stroke: var(--line);
+  stroke-width: 2;
+}
+
+.pg-phone rect {
+  fill: var(--ink);
+}
+
+.pg-lens {
+  fill: #7fe3ff;
+}
+
+.pg-frame circle,
+.pg-frame path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pg-fov {
+  fill: rgba(127, 227, 255, 0.18);
+}
+
+.pg-frame .pg-dim {
+  stroke: var(--cinnabar);
+  stroke-width: 1.5;
+}
+
+.placement .pg-dim-label {
+  fill: var(--cinnabar);
+  font-size: 10px;
+}
+
+.pg-frame {
+  opacity: 0;
+  animation: pg-cycle 7.5s infinite;
+}
+
+/* 负延迟让三帧依次各显示 2.5 秒 */
+.pg-f2 {
+  animation-delay: -5s;
+}
+
+.pg-f3 {
+  animation-delay: -2.5s;
+}
+
+@keyframes pg-cycle {
+  0%,
+  30% {
+    opacity: 1;
+  }
+  33.4%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-frame {
+    animation: none;
+  }
+  .pg-f3 {
+    opacity: 1;
+  }
+}
+
+.placement-tips {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
 .position-hint {
   margin: 16px auto 0;
   max-width: 320px;

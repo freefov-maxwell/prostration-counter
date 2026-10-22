@@ -4,12 +4,26 @@ import { exportAll } from '../db/db';
 import { downloadJson } from '../platform/overlay';
 import { scripture } from '../scripture';
 
+/** 当前字前后一小段原文，当前字高亮，便于记住进度在全文哪里。 */
+function ScriptureContext({ index }: { index: number }) {
+  const w = scripture.windowAt(index, 12);
+  return (
+    <p className="scripture-context">
+      {w.before}
+      <span className="scripture-context-current">{w.current}</span>
+      {w.after}
+    </p>
+  );
+}
+
 export function SettingsPage() {
   const { settings, updateSettings, charIndex, jumpChar, resetProgress, navigate } = useAppStore();
   const [jumpValue, setJumpValue] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
   const pct = ((charIndex / scripture.totalChars) * 100).toFixed(1);
   const chapter = scripture.chapterOf(Math.max(0, charIndex - 1));
+  const jumpN = parseInt(jumpValue, 10);
+  const jumpPreview = Number.isFinite(jumpN) ? Math.max(0, Math.min(jumpN, scripture.totalChars - 1)) : null;
 
   const doExport = async () => {
     downloadJson(`dalibai-backup-${new Date().toISOString().slice(0, 10)}.json`, await exportAll());
@@ -31,6 +45,7 @@ export function SettingsPage() {
           《{scripture.title}》第 {charIndex} 字 / 共 {scripture.totalChars} 字（{pct}%），当前第{' '}
           {chapter} 章
         </p>
+        <ScriptureContext index={charIndex} />
         <div className="btn-row">
           <input
             className="input"
@@ -54,6 +69,12 @@ export function SettingsPage() {
             跳转
           </button>
         </div>
+        {jumpPreview != null && (
+          <>
+            <p className="hint">跳转后（第 {scripture.chapterOf(jumpPreview)} 章）：</p>
+            <ScriptureContext index={jumpPreview} />
+          </>
+        )}
         {confirmReset ? (
           <div className="btn-row">
             <button
@@ -92,14 +113,6 @@ export function SettingsPage() {
             type="checkbox"
             checked={settings.descentCueOn !== false}
             onChange={(e) => void updateSettings({ descentCueOn: e.target.checked })}
-          />
-        </label>
-        <label className="switch-row">
-          <span>震动（Android）</span>
-          <input
-            type="checkbox"
-            checked={settings.vibrationOn}
-            onChange={(e) => void updateSettings({ vibrationOn: e.target.checked })}
           />
         </label>
         <label className="switch-row">
