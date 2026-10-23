@@ -25,7 +25,8 @@ interface Measures {
   shoulderW: number | null;
   earW: number | null;
   upright: boolean;
-  legsStraight: boolean;
+  /** 腿长 / 躯干长（髋→踝 ÷ 肩→髋），直立且可见踝时才有。 */
+  legRatio: number | null;
   armsDown: boolean;
   shouldersOk: boolean;
   hipsOk: boolean;
@@ -46,7 +47,7 @@ function measure(frame: Keypoint[], th: Thresholds): Measures {
   const dist = (a: Keypoint, b: Keypoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
   let upright = false;
-  let legsStraight = false;
+  let legRatio: number | null = null;
   let armsDown = false;
   if (lSh && rSh && lHip && rHip) {
     const dx = (lSh.x + rSh.x - lHip.x - rHip.x) / 2;
@@ -54,7 +55,7 @@ function measure(frame: Keypoint[], th: Thresholds): Measures {
     upright = dy > 0 && (Math.atan2(Math.abs(dx), dy) * 180) / Math.PI < th.uprightMaxAngle;
     const hipY = (lHip.y + rHip.y) / 2;
     const hipX = (lHip.x + rHip.x) / 2;
-    legsStraight = upright && ankleY != null && (ankleY - hipY) / dy >= th.readyLegRatio;
+    if (upright && ankleY != null) legRatio = (ankleY - hipY) / dy;
     const lW = v(KP.leftWrist);
     const rW = v(KP.rightWrist);
     const shW = dist(lSh, rSh);
@@ -69,7 +70,7 @@ function measure(frame: Keypoint[], th: Thresholds): Measures {
     shoulderW: lSh && rSh ? dist(lSh, rSh) : null,
     earW: lEar && rEar ? dist(lEar, rEar) : null,
     upright,
-    legsStraight,
+    legRatio,
     armsDown,
     shouldersOk: !!(lSh && rSh),
     hipsOk: !!(lHip && rHip),
@@ -105,7 +106,7 @@ export function analyzeStandingFrame(
     shoulderW: m.shoulderW,
     earW: m.earW,
     upright: m.upright,
-    legsStraight: m.legsStraight,
+    legsStraight: m.legRatio != null && m.legRatio >= th.readyLegRatio,
     armsDown: m.armsDown,
     headOutTop: m.noseY! <= th.inFrameMargin,
     feetOutBottom: m.ankleY != null && m.ankleY >= 1 - th.inFrameMargin,
@@ -150,6 +151,7 @@ export class SignalExtractor {
       heightRatio: null,
       upright: false,
       standing: false,
+      stance: false,
       lowness: this.lastLowness,
     };
     const m = frame ? measure(frame, th) : null;
@@ -177,6 +179,7 @@ export class SignalExtractor {
     if (m.shoulderW != null && b.shoulderW0 > 0) out.scale = this.recent.shoulderW! / b.shoulderW0;
     else if (m.earW != null && b.earW0 > 0) out.scale = this.recent.earW! / b.earW0;
     out.upright = m.upright;
+    out.stance = m.legRatio != null && m.legRatio >= th.stanceLegRatio && m.noseY != null;
 
     // 以远近比为主：大礼拜会扑向镜头，原地蹲起不会；头部下降只在人确实靠近时才计入
     if (out.scale != null) {
@@ -215,6 +218,18 @@ export class SignalExtractor {
       shoulderW0: mix(b.shoulderW0, r.shoulderW),
       earW0: mix(b.earW0, r.earW),
     };
+  }
+
+  /**
+   * 站位整体变了（拜后向前漂移、换了位置）：以当前站姿重新取基准。
+   * 肩宽、耳距按身高比例缩放而不直接取当前值——合掌举手时肩宽会变窄，人与镜头的远近才是要跟踪的量。
+   */
+  reanchor(): void {
+    const r = this.recent;
+    const b = this.baseline;
+    if (r.height == null || r.noseY == null || b.H <= 0) return;
+    const k = r.height / b.H;
+    this.baseline = { H: r.height, noseY0: r.noseY, shoulderW0: b.shoulderW0 * k, earW0: b.earW0 * k };
   }
 
   /** visibility 突降不立刻判丢失：连续 N 帧低置信才判 LOST。 */

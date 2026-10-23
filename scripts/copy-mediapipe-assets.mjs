@@ -23,6 +23,10 @@ const files = [
   'wasm/vision_wasm_internal.js',
   'wasm/vision_wasm_internal.wasm',
   'models/pose_landmarker_lite.task',
+  // 默认的轻量引擎 MoveNet（模型随仓库提交，这里只统计大小）
+  'models/movenet/model.json',
+  'models/movenet/group1-shard1of2.bin',
+  'models/movenet/group1-shard2of2.bin',
 ];
 const sizes = {};
 for (const f of files) {

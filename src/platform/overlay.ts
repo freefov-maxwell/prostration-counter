@@ -40,8 +40,10 @@ export function drawPose(
   if (frame) {
     const du = new DrawingUtils(ctx);
     const lw = Math.max(3, w / 180);
-    du.drawConnectors(frame, PoseLandmarker.POSE_CONNECTIONS, { color: '#7fe3ff', lineWidth: lw });
-    du.drawLandmarks(frame, { color: '#ffffff', fillColor: '#ffffff', radius: lw, lineWidth: 1 });
+    // visibility 为 0 的是模型没有的点（MoveNet 只有 17 点），不画
+    const conns = PoseLandmarker.POSE_CONNECTIONS.filter((c) => frame[c.start].visibility > 0 && frame[c.end].visibility > 0);
+    du.drawConnectors(frame, conns, { color: '#7fe3ff', lineWidth: lw });
+    du.drawLandmarks(frame.filter((k) => k.visibility > 0), { color: '#ffffff', fillColor: '#ffffff', radius: lw, lineWidth: 1 });
   }
 }
 

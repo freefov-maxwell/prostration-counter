@@ -55,6 +55,8 @@ export interface FrameSignals {
   upright: boolean;
   /** 严格站直：远近、高度、身高、直立、可见脚踝同时满足。 */
   standing: boolean;
+  /** 站姿（不依赖基准）：躯干直立、双腿伸直、鼻与脚踝可见。站位变了也成立，用于重取基准。 */
+  stance: boolean;
   /** 低位程度：以 (scale − 1) / 阈值 为主，人靠近镜头时才计入 headDrop；≥1 即低位。人丢失时保持上一有效值。 */
   lowness: number;
 }

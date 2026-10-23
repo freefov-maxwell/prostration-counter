@@ -1,4 +1,4 @@
-// MediaPipe PoseLandmarker 适配层（识别引擎的 PoseAdapter 一期唯一实现）。
+// MediaPipe PoseLandmarker 适配层：设置里可切换的高精度引擎（默认引擎为 MoveNet，见 movenet.ts）。
 // v1 决策：推理跑主线程 + 背压丢帧（见 README），WASM 全部本地自托管。
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import { PoseFrame } from '../engine/types';
@@ -45,6 +45,18 @@ async function downloadWithProgress(
   return out;
 }
 
+/** 按 pose-assets.json 汇总若干资源的解压后总字节；清单不可用时返回 0（进度条走不定态）。 */
+export async function assetsTotal(files: string[]): Promise<number> {
+  try {
+    const resp = await fetch(`${import.meta.env.BASE_URL}pose-assets.json`);
+    if (!resp.ok) return 0;
+    const sizes: Record<string, number> = await resp.json();
+    return files.reduce((sum, f) => sum + (sizes[f] ?? 0), 0);
+  } catch {
+    return 0;
+  }
+}
+
 /**
  * 模型懒加载：首次进入运动页才加载，之后走 Service Worker 运行时缓存（CacheFirst）离线可用。
  * 引擎（JS + WASM）与姿态模型并行下载，进度合并为一条总进度；
@@ -64,16 +76,7 @@ export function loadPoseLandmarker(
     'models/pose_landmarker_lite.task',
   ];
   loading = (async () => {
-    let total = 0;
-    try {
-      const resp = await fetch(`${base}pose-assets.json`);
-      if (resp.ok) {
-        const sizes: Record<string, number> = await resp.json();
-        total = files.reduce((sum, f) => sum + (sizes[f] ?? 0), 0);
-      }
-    } catch {
-      // 清单不可用时退化为不定态进度（total = 0）
-    }
+    const total = await assetsTotal(files);
     const currents = files.map(() => 0);
     const report = () =>
       onProgress?.({ loaded: currents.reduce((a, b) => a + b, 0), total });

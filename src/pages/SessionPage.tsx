@@ -5,7 +5,7 @@ import { LoadProgress } from '../platform/pose';
 import { analyzeStandingFrame, SignalExtractor } from '../engine/signals';
 import { initialMachineState, MachineEvent, MachineState, RepState, stepMachine } from '../engine/stateMachine';
 import { DEFAULT_THRESHOLDS } from '../engine/thresholds';
-import { Baseline, FrameSignals, PoseFrame } from '../engine/types';
+import { Baseline, FrameSignals, KP, PoseFrame } from '../engine/types';
 import { playBowl, playGoal, playQing, playTick, playVoice, preloadVoices, VoiceKey } from '../platform/feedback';
 import { downloadJson, drawPose } from '../platform/overlay';
 import { scripture } from '../scripture';
@@ -49,6 +49,8 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 interface DebugFrame {
   t: number;
   kp: number[] | null;
+  /** 推理耗时 ms。 */
+  ms?: number;
   st?: RepState;
   sig?: Pick<FrameSignals, 'quality' | 'standing' | 'lowness' | 'headDrop' | 'scale' | 'heightRatio' | 'upright'>;
 }
@@ -73,7 +75,7 @@ export function SessionPage() {
   const countingRef = useRef(false);
   /** 倒数：开始时刻、姿态不合格的起点、上次显示的秒数。 */
   const readyRef = useRef({ since: null as number | null, lostAt: null as number | null, lastSec: 0 });
-  const posSamplesRef = useRef<{ t: number; H: number; noseY: number; sw: number; ew: number }[]>([]);
+  const posSamplesRef = useRef<{ t: number; H: number; noseX: number; noseY: number; sw: number; ew: number }[]>([]);
   const extractorRef = useRef<SignalExtractor | null>(null);
   const machineRef = useRef<MachineState>(initialMachineState());
   const debugRef2 = useRef({ frames: [] as DebugFrame[], events: [] as (MachineEvent & { t: number })[], baseline0: null as Baseline | null });
@@ -146,26 +148,41 @@ export function SessionPage() {
       debugRef.current.textContent =
         `H=${a.height?.toFixed(3)} 肩宽=${a.shoulderW?.toFixed(3)} 直立=${a.upright} 腿直=${a.legsStraight} 手垂=${a.armsDown}`;
 
-    // 倒数期间可继续微调；姿态短暂不合格（< readyGraceMs）不打断，超过则倒数重来
+    // 站好且静止满一个窗口（readyWindowMs）才开始倒数；倒数中一旦移动、或姿态不合格超过宽限（readyGraceMs，防识别抖动），回到站位调整
     const r = readyRef.current;
     const samples = posSamplesRef.current;
-    if (ok) {
-      r.lostAt = null;
-      if (r.since == null) {
-        r.since = t;
-        r.lastSec = 0;
-      }
-      samples.push({ t, H: a.height!, noseY: a.noseY!, sw: a.shoulderW!, ew: a.earW ?? 0 });
-      while (samples.length && t - samples[0].t > th.readyWindowMs) samples.shift();
-    } else if (r.since != null) {
-      r.lostAt ??= t;
-      if (t - r.lostAt > th.readyGraceMs) {
+    const backToAdjust = () => {
+      if (r.since != null) {
         r.since = null;
-        posSamplesRef.current = [];
         setCountdown(null);
       }
+    };
+    if (!ok) {
+      r.lostAt ??= t;
+      if (t - r.lostAt > th.readyGraceMs) {
+        posSamplesRef.current = [];
+        backToAdjust();
+      }
+      return;
     }
-    if (r.since == null) return;
+    r.lostAt = null;
+    samples.push({ t, H: a.height!, noseX: frame![KP.nose].x, noseY: a.noseY!, sw: a.shoulderW!, ew: a.earW ?? 0 });
+    // 保留一个刚好越过窗口边界的样本，用来判断窗口是否已攒满
+    while (samples.length > 1 && t - samples[1].t >= th.readyWindowMs) samples.shift();
+    const range = (vs: number[]) => Math.max(...vs) - Math.min(...vs);
+    const moving =
+      range(samples.map((s) => s.noseY)) > th.readyMaxDrift ||
+      range(samples.map((s) => s.noseX)) > th.readyMaxDrift ||
+      range(samples.map((s) => s.H)) / median(samples.map((s) => s.H)) > th.readyMaxScaleDrift;
+    if (moving) {
+      backToAdjust();
+      return;
+    }
+    if (r.since == null) {
+      if (t - samples[0].t < th.readyWindowMs) return;
+      r.since = t;
+      r.lastSec = 0;
+    }
     const remain = Math.ceil((th.countdownMs - (t - r.since)) / 1000);
     if (remain > 0) {
       if (remain !== r.lastSec) {
@@ -175,13 +192,7 @@ export function SessionPage() {
       }
       return;
     }
-    // 倒数结束：基准取最后一段姿态，且这段内需站稳，否则继续等
-    const ys = samples.map((s) => s.noseY);
-    if (!ok || samples.length < 5 || Math.max(...ys) - Math.min(...ys) > th.readyMaxDrift) {
-      setCountdown(0);
-      return;
-    }
-
+    // 倒数结束：窗口内各帧已保证静止，直接取作基准
     const baseline: Baseline = {
       H: median(samples.map((s) => s.H)),
       noseY0: median(samples.map((s) => s.noseY)),
@@ -200,7 +211,7 @@ export function SessionPage() {
     speak('ready', t);
   };
 
-  const onFrame = (frame: PoseFrame, t: number) => {
+  const onFrame = (frame: PoseFrame, t: number, inferMs: number) => {
     const s = useAppStore.getState();
     // autoPaused 时仍要跑状态机以检测人回来（resumed 事件）；interrupted 时完全停止
     if (s.sessionStatus === 'interrupted') return;
@@ -208,6 +219,7 @@ export function SessionPage() {
     if (dbg) {
       dbg.frames.push({
         t: Math.round(t),
+        ms: Math.round(inferMs),
         kp: frame ? frame.flatMap((k) => [r3(k.x), r3(k.y), r2(k.z), r2(k.visibility)]) : null,
       });
       const cut = dbg.frames.findIndex((f) => t - f.t <= DEBUG_WINDOW_MS);
@@ -270,14 +282,18 @@ export function SessionPage() {
       } else if (e.type === 'resumed') {
         s.autoResume();
         speak('resumed', t);
+      } else if (e.type === 'settled') {
+        extractorRef.current.rebase();
+      } else if (e.type === 'reanchor') {
+        extractorRef.current.reanchor();
       } else if (e.type === 'stateChanged') {
         s.setMachineState(e.to);
-        if (e.to === 'STANDING') extractorRef.current.rebase();
       }
     }
   };
 
-  const stage = usePoseLoop(videoRef, { onFrame, onError: setError, onProgress: setProgress }, retryKey);
+  const poseModel = store.settings.poseModel ?? 'movenet';
+  const stage = usePoseLoop(videoRef, { onFrame, onError: setError, onProgress: setProgress, model: poseModel }, retryKey);
 
   const exportFrames = () => {
     const d = debugRef2.current;
@@ -288,7 +304,8 @@ export function SessionPage() {
         exportedAt: new Date().toISOString(),
         userAgent: navigator.userAgent,
         video: { w: videoRef.current?.videoWidth, h: videoRef.current?.videoHeight },
-        kpFormat: 'BlazePose 33 点，每点 [x, y, z, visibility]，x/y 为帧宽高归一化',
+        poseModel,
+        kpFormat: 'BlazePose 33 点，每点 [x, y, z, visibility]，x/y 为帧宽高归一化（movenet 只有 17 点，其余 visibility 为 0）',
         thresholds: DEFAULT_THRESHOLDS,
         baseline0: d.baseline0,
         baseline: extractorRef.current?.getBaseline() ?? null,

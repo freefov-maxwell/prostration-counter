@@ -129,7 +129,7 @@
 
 ## 🧠 它是怎么数的
 
-摄像头每一帧交给 Google [MediaPipe](https://developers.google.com/mediapipe) 的 BlazePose 模型，在手机本地识别出 33 个人体关键点；再由一个规则状态机判断动作阶段：
+摄像头每一帧交给轻量的 Google [MoveNet](https://www.tensorflow.org/hub/tutorials/movenet) 模型（设置里可切换为更稳但更重的 [MediaPipe](https://developers.google.com/mediapipe) BlazePose），在手机本地识别人体关键点；再由一个规则状态机判断动作阶段：
 
 ```mermaid
 flowchart LR
@@ -161,7 +161,7 @@ flowchart LR
 <details>
 <summary><b>本地开发（开发者）</b></summary>
 
-技术栈：React 18 + TypeScript + Vite + MediaPipe Tasks Vision，纯前端 PWA。
+技术栈：React 18 + TypeScript + Vite + TensorFlow.js（MoveNet）/ MediaPipe Tasks Vision，纯前端 PWA。
 
 ```bash
 npm install     # 会自动复制 MediaPipe WASM 资源
@@ -171,10 +171,14 @@ npm run build   # 生产构建（输出 dist/）
 ```
 
 摄像头需要安全上下文（`localhost` 或 HTTPS）。用手机真机调试时，最简单的办法是 `npx cloudflared tunnel --url http://localhost:5173` 拿到一个 HTTPS 地址。推送到 `main` 分支会通过 GitHub Actions 自动部署到 GitHub Pages。
+
+Cloudflare Workers 部署：项目根目录设为包含 `package.json` 和 `wrangler.jsonc` 的目录，构建命令为 `npm run build`，部署命令为 `npx wrangler deploy --config wrangler.jsonc`。务必将 `wrangler.jsonc` 一并提交；它直接指定静态资源目录 `dist/`，避免触发不支持 Vite 5 的自动配置流程，无需升级 Vite 或安装 Cloudflare Vite 插件。
+
+默认构建使用根路径 `/`，适用于 Cloudflare。GitHub Pages 工作流通过 `npm run build -- --base=/prostration-counter/` 指定子路径；PWA 的启动地址和作用域会随构建路径自动生成。
 </details>
 
 ## 许可证
 
 [MIT](LICENSE) © freefov-maxwell
 
-姿态识别模型与运行时来自 Google MediaPipe（Apache-2.0）；《道德经》文本属公有领域。
+姿态识别模型与运行时来自 Google MoveNet / TensorFlow.js 与 MediaPipe（均为 Apache-2.0）；《道德经》文本属公有领域。

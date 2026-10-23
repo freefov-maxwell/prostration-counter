@@ -32,12 +32,14 @@ export default defineConfig({
       },
       workbox: {
         // 模型 + 推理引擎共约 17MB，不做预缓存（否则首屏要背约 39MB），
-        // 改为运行时 CacheFirst：校准页首次带进度下载后，离线可用
+        // 改为运行时 CacheFirst：运动页首次带进度下载后，离线可用
         globPatterns: ['**/*.{js,css,html,png,svg,json,mp3}'],
+        // MoveNet（默认引擎）的 TF.js 分包与模型同样按需下载，不进预缓存
+        globIgnores: ['**/models/**', '**/assets/movenet-*.js'],
         navigateFallback: 'index.html',
         runtimeCaching: [
           {
-            urlPattern: /\/(models|wasm)\//,
+            urlPattern: /\/(models|wasm)\/|\/assets\/movenet-/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'pose-engine',

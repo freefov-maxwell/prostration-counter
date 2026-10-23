@@ -1,5 +1,8 @@
 {
   "wasm/vision_wasm_internal.js": 322044,
   "wasm/vision_wasm_internal.wasm": 11153617,
-  "models/pose_landmarker_lite.task": 5777746
+  "models/pose_landmarker_lite.task": 5777746,
+  "models/movenet/model.json": 168013,
+  "models/movenet/group1-shard1of2.bin": 4194304,
+  "models/movenet/group1-shard2of2.bin": 455912
 }

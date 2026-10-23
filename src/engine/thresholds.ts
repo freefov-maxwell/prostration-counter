@@ -32,8 +32,22 @@ export interface Thresholds {
   descendConfirmMs: number;
   /** 低位累计时长下限：到达后"上膛"，排除弯腰点头。 */
   lowConfirmMs: number;
+  /** 上膛前须见到头部下沉：headDrop ≥ 此值累计 descendConfirmMs（站着走近镜头头是上升的）。 */
+  armHeadDrop: number;
+  /** 下拜中表观身高比 ≥ 此值累计 descendConfirmMs → 判为站着走近镜头，本次作废。 */
+  approachHeightRatio: number;
+  /** 回看用的低位：headDrop ≥ 此值（跪 / 蹲的头部高度）或 lowness ≥ 1，不论远近。 */
+  riseFromHeadDrop: number;
+  /** 起身终点：身高比 / 远近比（即身高与肩宽之比相对站姿）下限。与远近无关：站着约 1，跪直约 0.8。 */
+  uprightProportionMin: number;
+  /** 终点需保持的时长（防识别跳变）。 */
+  uprightHoldMs: number;
+  /** 回看窗口：终点出现前此时长内仍在低位，才算一次起身。 */
+  riseWindowMs: number;
   /** 下拜开始后迟迟到不了低位 → 作废。 */
   descendTimeoutMs: number;
+  /** 站姿（不依赖基准）保持此时长却判不出站直 → 站位变了，重取基准。 */
+  reanchorMs: number;
   /** 站直需保持的时长（起始与计数都用）。 */
   standHoldMs: number;
   /** 下拜中人丢失时，lowness ≥ 此值则丢失时间也计入低位（脸贴地常识别不到）。 */
@@ -50,15 +64,19 @@ export interface Thresholds {
   baselineAdapt: number;
   /** 起始站位：人体高度下限（防站太远关键点过小）。 */
   targetHeightMin: number;
-  /** 起始站位：腿长 / 躯干长 下限（站直约 1.6–1.9，蹲约 1）。 */
+  /** 起始站位：腿长 / 躯干长 下限（站直约 1.6–1.9，蹲约 1，跪约 0.5）。取严，保证基准采自站直。 */
   readyLegRatio: number;
-  /** 起始站位：保持期间鼻子位置最大浮动（帧高比例），超出视为没站稳。 */
+  /** 计数中的站姿（起身终点、重取基准）：腿长 / 躯干长 下限，比起始站位宽松。 */
+  stanceLegRatio: number;
+  /** 起始站位：窗口内鼻子位置最大浮动（帧宽/帧高比例），超出视为在移动。 */
   readyMaxDrift: number;
-  /** 起始站位：姿态合格后的倒数时长，期间可继续微调。 */
+  /** 起始站位：窗口内人体高度最大相对浮动，超出视为在前后走动。 */
+  readyMaxScaleDrift: number;
+  /** 起始站位：倒数时长，期间移动则回到站位调整。 */
   countdownMs: number;
-  /** 起始站位：姿态短暂不合格的宽限，超过则倒数重来。 */
+  /** 起始站位：姿态短暂不合格的宽限（防识别抖动），超过则回到站位调整。 */
   readyGraceMs: number;
-  /** 起始站位：倒数结束时取最后这段时间的姿态作基准，且需在此段内站稳。 */
+  /** 起始站位：判断静止的滑动窗口，静止满一个窗口才开始倒数；倒数结束时也取这段姿态作基准。 */
   readyWindowMs: number;
   /** 头 / 脚距画面边缘的最小余量。 */
   inFrameMargin: number;
@@ -71,7 +89,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
 
   standHeadDrop: 0.15,
   standScaleMin: 0.75,
-  standScaleMax: 1.35,
+  // 1.35 时漂移回放已在边缘（1.3 即漏计），留余量
+  standScaleMax: 1.5,
   standHeightRatio: 0.8,
   uprightMaxAngle: 25,
   lowHeadDrop: 0.45,
@@ -81,8 +100,20 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   descendLowness: 0.3,
   descendConfirmMs: 150,
   lowConfirmMs: 1000,
+  // 实测（两模型各 3 拜 / 3 次走近）：真拜 headDrop 峰值 1.2–1.3、身高比 ≤ 1.0；走近 headDrop ≤ 0.05、身高比 1.9–2.9
+  // 走到手机前弯腰实测 headDrop 0.43；回放 0.4–1.1 全对，取中
+  armHeadDrop: 0.7,
+  approachHeightRatio: 1.3,
+  // 实测起身（跪姿高度 → 站姿高度）耗时 300–520ms，终点远近比 0.99–1.06；识别跳变 < 120ms
+  riseFromHeadDrop: 0.4,
+  // 实测站着（含漂移到前 / 后、合掌）p10 ≥ 0.94；跪直合掌挡脸 p90 0.86
+  uprightProportionMin: 0.9,
+  uprightHoldMs: 150,
+  riseWindowMs: 3000,
   descendTimeoutMs: 15000,
   standHoldMs: 500,
+  // 实测：拜后向前漂移到远近比 1.3 处站定约 2.5s 再拜；需在其内完成重取基准 + 站直保持
+  reanchorMs: 800,
   lostAsLowLowness: 0.6,
 
   lostToPauseMs: 10000,
@@ -92,7 +123,10 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   // 手机放地面时，安全距离（约 2.5m）下站姿高度仅占画面约 0.4
   targetHeightMin: 0.25,
   readyLegRatio: 1.3,
+  // 跪直被误认腿直由 uprightProportionMin 把关；1.4 起站姿会漏判，取 1.1 留余量
+  stanceLegRatio: 1.1,
   readyMaxDrift: 0.03,
+  readyMaxScaleDrift: 0.08,
   countdownMs: 5000,
   readyGraceMs: 500,
   readyWindowMs: 1500,

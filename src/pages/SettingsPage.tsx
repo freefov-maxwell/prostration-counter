@@ -142,6 +142,15 @@ export function SettingsPage() {
             onChange={(e) => void updateSettings({ debugOverlay: e.target.checked })}
           />
         </label>
+        <label className="switch-row">
+          <span>使用高精度识别模型 MediaPipe</span>
+          <input
+            type="checkbox"
+            checked={settings.poseModel === 'mediapipe'}
+            onChange={(e) => void updateSettings({ poseModel: e.target.checked ? 'mediapipe' : 'movenet' })}
+          />
+        </label>
+        <p className="hint">默认的轻量模型计数不准时可开启。识别更稳，但首次使用另需下载约 17 MB，手机负担更重，需浏览器支持 WebGL2。</p>
       </section>
 
       <section className="section">

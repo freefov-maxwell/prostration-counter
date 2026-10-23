@@ -29,7 +29,11 @@ export interface Settings {
   descentCueOn?: boolean;
   /** 调试：相机页叠加骨架与识别数值。 */
   debugOverlay?: boolean;
+  /** 姿态识别引擎，未设置视为 movenet。 */
+  poseModel?: PoseModel;
 }
+
+export type PoseModel = 'mediapipe' | 'movenet';
 
 export const DEFAULT_SETTINGS: Settings = {
   id: 1,

@@ -36,6 +36,21 @@ function settle(ex: SignalExtractor, frame: Keypoint[], t0 = 0): FrameSignals {
 }
 
 describe('SignalExtractor 多信号姿态判定', () => {
+  it('reanchor：人往前站近后重取基准，站直恢复成立；肩宽按身高比例缩放', () => {
+    const ex = new SignalExtractor(baseline);
+    // 整体放大 1.4 倍（站近），以画面中心为原点
+    const z = (k: Keypoint) => kp(0.5 + (k.x - 0.5) * 1.4, 0.5 + (k.y - 0.5) * 1.4);
+    const near = standingFrame().map(z);
+    const before = settle(ex, near);
+    expect(before.stance).toBe(true);
+    expect(before.standing).toBe(false);
+    ex.reanchor();
+    const after = settle(ex, near, 1000);
+    expect(after.standing).toBe(true);
+    expect(after.scale).toBeCloseTo(1, 2);
+    expect(ex.getBaseline().shoulderW0).toBeCloseTo(0.28, 3);
+  });
+
   it('站姿：站直，远近比 ≈ 1，lowness ≈ 0', () => {
     const sig = settle(new SignalExtractor(baseline), standingFrame());
     expect(sig.quality).toBe('FULL');

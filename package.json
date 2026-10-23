@@ -13,6 +13,9 @@
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.14",
+    "@tensorflow/tfjs-backend-webgl": "^4.22.0",
+    "@tensorflow/tfjs-converter": "^4.22.0",
+    "@tensorflow/tfjs-core": "^4.22.0",
     "dexie": "^4.0.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

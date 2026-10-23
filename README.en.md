@@ -119,7 +119,7 @@ Usually it's the phone's position. Your whole body must be in frame while you're
 
 ## 🧠 How it works
 
-Each camera frame goes to Google [MediaPipe](https://developers.google.com/mediapipe) BlazePose, which finds 33 body landmarks on the device. A rule-based state machine then follows the movement:
+Each camera frame goes to the lightweight Google [MoveNet](https://www.tensorflow.org/hub/tutorials/movenet) model (switchable in Settings to the steadier but heavier [MediaPipe](https://developers.google.com/mediapipe) BlazePose), which finds body landmarks on the device. A rule-based state machine then follows the movement:
 
 ```mermaid
 flowchart LR
@@ -152,7 +152,7 @@ The count is anchored to **returning to a stable standing position**, where the 
 <details>
 <summary><b>Local development</b></summary>
 
-Stack: React 18 + TypeScript + Vite + MediaPipe Tasks Vision, a fully client-side PWA.
+Stack: React 18 + TypeScript + Vite + TensorFlow.js (MoveNet) / MediaPipe Tasks Vision, a fully client-side PWA.
 
 ```bash
 npm install     # also copies the MediaPipe WASM assets
@@ -162,10 +162,14 @@ npm run build   # production build (outputs dist/)
 ```
 
 The camera needs a secure context (`localhost` or HTTPS). To test on a real phone, the easiest way is `npx cloudflared tunnel --url http://localhost:5173`, which gives you an HTTPS URL. Pushes to `main` deploy to GitHub Pages automatically through GitHub Actions.
+
+For Cloudflare Workers, set the project root to the directory containing `package.json` and `wrangler.jsonc`, the build command to `npm run build`, and the deploy command to `npx wrangler deploy --config wrangler.jsonc`. Commit `wrangler.jsonc` with the project: it points directly to the static `dist/` directory, avoiding automatic configuration that does not support Vite 5. No Vite upgrade or Cloudflare Vite plugin is needed.
+
+The default build uses `/` for Cloudflare. The GitHub Pages workflow uses `npm run build -- --base=/prostration-counter/` for its subdirectory; the PWA start URL and scope follow the build base automatically.
 </details>
 
 ## License
 
 [MIT](LICENSE) © freefov-maxwell
 
-The pose detection model and runtime come from Google MediaPipe (Apache-2.0). The *Tao Te Ching* text is in the public domain.
+The pose detection models and runtimes come from Google MoveNet / TensorFlow.js and MediaPipe (both Apache-2.0). The *Tao Te Ching* text is in the public domain.
