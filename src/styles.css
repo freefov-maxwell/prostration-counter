@@ -794,18 +794,312 @@ button {
 }
 
 /* —— 统计 —— */
-.bar-chart {
-  width: 100%;
-  height: 96px;
+.stats-page {
+  gap: 16px;
 }
 
-.bar-chart .bar {
-  fill: var(--ink);
+.stats-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--ink) 0%, #4a3f33 100%);
+  color: var(--paper);
 }
 
-.bar-chart .axis {
-  stroke: var(--line);
-  stroke-width: 0.4;
+/* 朱砂印章 */
+.hero-seal {
+  flex: none;
+  width: 76px;
+  height: 76px;
+  border-radius: 12px;
+  background: var(--cinnabar);
+  box-shadow: inset 0 0 0 3px rgba(245, 241, 232, 0.35);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  padding-top: 14px;
+  gap: 2px;
+}
+
+.hero-num {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-unit {
+  font-size: 14px;
+}
+
+.hero-title {
+  font-size: 20px;
+  letter-spacing: 0.2em;
+}
+
+.hero-sub {
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.75;
+}
+
+.stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value.small {
+  font-size: 20px;
+  line-height: 34px;
+}
+
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-head h3,
+.stats-page .section h3 {
+  font-size: 15px;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+}
+
+/* 分段切换 */
+.seg {
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.seg button {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.seg .seg-on {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.period-line {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.period-line b {
+  color: var(--ink);
+  font-size: 16px;
+}
+
+/* 柱状图：每列 = 柱（含顶部 18px 数值留白）+ 20px 日期 */
+.bars {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  height: 160px;
+  padding-top: 18px;
+}
+
+.bars.dense {
+  gap: 2px;
+}
+
+.bar-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bar-track {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.bar-fill {
+  flex: none;
+  min-height: 2px;
+  border-radius: 4px 4px 1px 1px;
+  background: var(--ink);
+  opacity: 0.78;
+  transition: height 0.4s ease;
+}
+
+.bars.dense .bar-fill {
+  border-radius: 2px 2px 0 0;
+}
+
+.bar-fill.today {
+  background: var(--cinnabar);
+  opacity: 1;
+}
+
+.bar-value {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  padding: 0 2px;
+  background: var(--card); /* 均线从数字后面穿过，不压字 */
+  font-size: 11px;
+  text-align: center;
+  color: var(--ink-soft);
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-label {
+  height: 20px;
+  line-height: 20px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.bars-avg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--cinnabar);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.period-line .avg-key {
+  float: right;
+  color: var(--cinnabar);
+}
+
+/* 图例：与图中虚线同款 */
+.period-line .avg-key::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  margin-right: 4px;
+  vertical-align: middle;
+  border-top: 1px dashed var(--cinnabar);
+}
+
+.period-line .avg-key b {
+  color: var(--cinnabar);
+}
+
+.more-btn {
+  align-self: center;
+  margin-top: 8px;
+  color: var(--ink-soft);
+  border-color: var(--line);
+}
+
+/* 热力图：7 行（周一至周日），按列排周 */
+.heatmap-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heatmap {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 22px);
+  justify-content: center;
+  gap: 4px;
+}
+
+.heat-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.heat-cell.empty {
+  background: none;
+}
+
+.heat-cell.l1 { background: #e3b9a6; }
+.heat-cell.l2 { background: #cf8a72; }
+.heat-cell.l3 { background: #b4543f; }
+.heat-cell.l4 { background: var(--cinnabar); }
+
+.heat-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.heat-legend .heat-cell {
+  width: 11px;
+}
+
+.bests {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.bests > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 4px;
+}
+
+.bests > div + div {
+  border-left: 1px solid var(--line);
+}
+
+.best-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--cinnabar);
+  font-variant-numeric: tabular-nums;
+}
+
+.best-label {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.history-group + .history-group {
+  margin-top: 4px;
+}
+
+.history-day {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
 }
 
 .history-list {
@@ -816,12 +1110,50 @@ button {
 
 .history-item {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr auto;
+  grid-template-columns: 52px 1fr auto auto;
   align-items: center;
   gap: 8px;
-  padding: 10px 4px;
-  border-bottom: 1px solid var(--line);
+  padding: 6px 4px;
+  border-bottom: 1px dashed var(--line);
   font-size: 15px;
+}
+
+.h-time {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.h-count {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.h-count small {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.h-badge {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  vertical-align: 2px;
+}
+
+.h-badge.met {
+  border-color: var(--cinnabar);
+  color: var(--cinnabar);
+}
+
+.h-dur {
+  font-size: 13px;
+  color: var(--ink-soft);
 }
 
 /* 下载进度条（模型/引擎首次加载） */

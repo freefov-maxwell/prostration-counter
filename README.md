@@ -58,7 +58,7 @@
     <td align="center"><img src="docs/screenshots/home.png" width="200" alt="主页" /><br/><sub>主页：今日次数与连续天数</sub></td>
     <td align="center"><img src="docs/screenshots/prepare.png" width="200" alt="准备页" /><br/><sub>准备：手机摆放示意、目标设置</sub></td>
     <td align="center"><img src="docs/screenshots/summary.png" width="200" alt="完成页" /><br/><sub>完成：本次次数、时长、节奏</sub></td>
-    <td align="center"><img src="docs/screenshots/stats.png" width="200" alt="统计页" /><br/><sub>统计：累计数据与历史记录</sub></td>
+    <td align="center"><img src="docs/screenshots/stats.png" width="200" alt="统计页" /><br/><sub>统计：连续天数、每日趋势与历史记录</sub></td>
   </tr>
 </table>
 

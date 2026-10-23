@@ -60,7 +60,7 @@ This app fixes that. Stand your phone up in front of you, and every time you ret
     <td align="center"><img src="docs/screenshots/home.png" width="200" alt="Home" /><br/><sub>Home: today's count and streak</sub></td>
     <td align="center"><img src="docs/screenshots/prepare.png" width="200" alt="Prepare" /><br/><sub>Prepare: phone placement and goal</sub></td>
     <td align="center"><img src="docs/screenshots/summary.png" width="200" alt="Summary" /><br/><sub>Summary: count, time and pace</sub></td>
-    <td align="center"><img src="docs/screenshots/stats.png" width="200" alt="Stats" /><br/><sub>Stats: totals and history</sub></td>
+    <td align="center"><img src="docs/screenshots/stats.png" width="200" alt="Stats" /><br/><sub>Stats: streak, daily trend and history</sub></td>
   </tr>
 </table>
 
