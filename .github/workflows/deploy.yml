@@ -24,7 +24,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run build
+      - run: npm run build -- --base=/prostration-counter/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

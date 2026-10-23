@@ -2,14 +2,13 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(({ command }) => {
-  // GitHub Pages 部署在子路径 /prostration-counter/ 下；开发模式保持根路径
-  const base = command === 'build' ? '/prostration-counter/' : '/';
-  return {
-  base,
+// Cloudflare 使用根路径；GitHub Pages 在构建命令中通过 --base 指定子路径。
+export default defineConfig({
   server: {
     // 允许局域网访问（手机真机调试）
     host: true,
+    // 允许 cloudflared 临时隧道（iOS 真机需要 HTTPS 才能开摄像头）
+    allowedHosts: ['.trycloudflare.com'],
   },
   plugins: [
     react(),
@@ -21,7 +20,6 @@ export default defineConfig(({ command }) => {
         short_name: '大礼拜',
         description: '前置摄像头自动为大礼拜（磕大头）计数，附《道德经》逐字同行。',
         lang: 'zh-CN',
-        start_url: base,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#f5f1e8',
@@ -54,5 +52,4 @@ export default defineConfig(({ command }) => {
     environment: 'node',
     include: ['src/**/*.test.ts'],
   },
-  };
 });
