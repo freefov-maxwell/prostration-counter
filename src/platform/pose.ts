@@ -14,7 +14,7 @@ export interface LoadProgress {
 }
 
 /** 流式下载并逐块回报进度，返回完整字节。 */
-async function downloadWithProgress(
+export async function downloadWithProgress(
   url: string,
   onBytes: (loaded: number, total: number) => void,
 ): Promise<Uint8Array> {

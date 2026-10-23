@@ -359,7 +359,7 @@ export function SessionPage() {
           )}
           {stage === 'loading' && !error && (
             <div className="panel">
-              <p className="guidance">首次使用需下载识别资源（约 16 MB），之后离线可用</p>
+              <p className="guidance">首次使用需下载识别资源（约 {poseModel === 'mediapipe' ? 17 : 6} MB），之后离线可用</p>
               <div className="progress">
                 <div
                   className="progress-fill"

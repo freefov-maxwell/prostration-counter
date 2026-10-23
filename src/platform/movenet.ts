@@ -1,11 +1,11 @@
-// MoveNet SinglePose Lightning（TF.js）适配层：默认的轻量引擎（约 5MB，MediaPipe 约 17MB，设置里可切换）。
+// MoveNet SinglePose Lightning（TF.js）适配层：默认的轻量引擎（约 6MB，MediaPipe 约 17MB，设置里可切换）。
 // 输出补成 BlazePose 33 点布局，识别引擎无需改动；MoveNet 没有的点 visibility 为 0，z 恒为 0。
 // 本模块经动态 import 按需加载，切到 MediaPipe 的用户不下载 TF.js。
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { GraphModel, loadGraphModel } from '@tensorflow/tfjs-converter';
 import { Keypoint, PoseFrame } from '../engine/types';
-import { assetsTotal, LoadProgress } from './pose';
+import { assetsTotal, downloadWithProgress, LoadProgress } from './pose';
 
 const SIZE = 192;
 const FILES = ['models/movenet/model.json', 'models/movenet/group1-shard1of2.bin', 'models/movenet/group1-shard2of2.bin'];
@@ -68,9 +68,22 @@ export function loadMoveNet(onProgress?: (p: LoadProgress) => void): Promise<Gra
     const total = await assetsTotal(FILES);
     await tf.setBackend('webgl');
     await tf.ready();
-    const m = await loadGraphModel(`${base}models/movenet/model.json`, {
-      onProgress: (f) => onProgress?.({ loaded: f * total, total }),
-    });
+    // 自己流式下载以按字节报进度：loadGraphModel 的 onProgress 只在响应头到达、整个分片下完时跳变
+    const currents = FILES.map(() => 0);
+    const [json, ...shards] = await Promise.all(
+      FILES.map((f, i) =>
+        downloadWithProgress(`${base}${f}`, (loaded) => {
+          currents[i] = loaded;
+          onProgress?.({ loaded: currents.reduce((a, b) => a + b, 0), total });
+        }),
+      ),
+    );
+    // FILES 里分片顺序与 model.json 的 weightsManifest.paths 一致
+    const artifacts = await tf.io.getModelArtifactsForJSON(JSON.parse(new TextDecoder().decode(json)), async (manifest) => [
+      manifest.flatMap((g) => g.weights),
+      shards.map((b) => b.buffer as ArrayBuffer),
+    ]);
+    const m = await loadGraphModel(tf.io.fromMemory(artifacts));
     // 预热：首次推理编译着色器较慢，放在加载阶段而不是第一帧
     tf.tidy(() => {
       m.execute(tf.zeros([1, SIZE, SIZE, 3], 'int32'));
