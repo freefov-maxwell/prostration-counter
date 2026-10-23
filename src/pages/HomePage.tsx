@@ -112,13 +112,15 @@ function Intro({ firstTime, onStart, onSkip }: { firstTime: boolean; onStart(): 
         <button className="btn-primary btn-huge" onClick={onStart}>
           {firstTime ? '开始第一次练习' : '开始练习'}
         </button>
-        <button className="btn-text" onClick={onSkip}>
-          {firstTime ? '先看看首页' : '返回首页'}
-        </button>
+        <div className="intro-cta-secondary">
+          <button className="btn-text" onClick={onSkip}>
+            {firstTime ? '先看看首页' : '返回首页'}
+          </button>
+          <footer className="hint center brand-footer">
+            <a href="https://shizhao.org.cn/" target="_blank" rel="noopener noreferrer">时照启明堂</a>
+          </footer>
+        </div>
       </div>
-      <footer className="hint center brand-footer">
-        <a href="https://shizhao.org.cn/" target="_blank" rel="noopener noreferrer">时照启明堂</a>
-      </footer>
     </div>
   );
 }

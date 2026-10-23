@@ -24,8 +24,6 @@ export interface Settings {
   id: number;
   scriptureEnabled: boolean;
   defaultTarget?: number;
-  /** 俯身识别提示音（低音提示），未设置视为开启。 */
-  descentCueOn?: boolean;
   /** 调试：相机页叠加骨架与识别数值。 */
   debugOverlay?: boolean;
   /** 姿态识别引擎，未设置视为 movenet。 */

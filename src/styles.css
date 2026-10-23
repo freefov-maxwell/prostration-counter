@@ -251,6 +251,25 @@ button {
   gap: 4px;
 }
 
+.intro-cta-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+.intro-cta .brand-footer {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.intro-cta .brand-footer a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
 .warning {
   color: var(--cinnabar);
   font-size: 14px;

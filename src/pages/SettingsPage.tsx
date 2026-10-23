@@ -154,14 +154,6 @@ export function SettingsPage() {
       <section className="section">
         <h3>反馈</h3>
         <label className="switch-row">
-          <span>俯身识别提示音（低音提示）</span>
-          <input
-            type="checkbox"
-            checked={settings.descentCueOn !== false}
-            onChange={(e) => void updateSettings({ descentCueOn: e.target.checked })}
-          />
-        </label>
-        <label className="switch-row">
           <span>默认显示《道德经》逐字</span>
           <input
             type="checkbox"

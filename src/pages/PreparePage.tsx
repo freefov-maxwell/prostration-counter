@@ -46,12 +46,13 @@ function PlacementGuide() {
 
 export function PreparePage() {
   const { settings, updateSettings, beginSession, navigate } = useAppStore();
-  const [targetChoice, setTargetChoice] = useState<'none' | '108' | 'custom'>(
-    settings.defaultTarget === 108 ? '108' : settings.defaultTarget ? 'custom' : 'none',
+  const [targetChoice, setTargetChoice] = useState<'none' | '36' | '108' | 'custom'>(
+    settings.defaultTarget === 36 ? '36' : settings.defaultTarget === 108 ? '108' : settings.defaultTarget ? 'custom' : 'none',
   );
   const [customTarget, setCustomTarget] = useState(String(settings.defaultTarget ?? ''));
 
   const resolveTarget = (): number | null => {
+    if (targetChoice === '36') return 36;
     if (targetChoice === '108') return 108;
     if (targetChoice === 'custom') {
       const n = parseInt(customTarget, 10);
@@ -90,6 +91,12 @@ export function PreparePage() {
             无目标
           </button>
           <button
+            className={targetChoice === '36' ? 'chip chip-active' : 'chip'}
+            onClick={() => setTargetChoice('36')}
+          >
+            36 次
+          </button>
+          <button
             className={targetChoice === '108' ? 'chip chip-active' : 'chip'}
             onClick={() => setTargetChoice('108')}
           >
@@ -122,14 +129,6 @@ export function PreparePage() {
             type="checkbox"
             checked={settings.scriptureEnabled}
             onChange={(e) => void updateSettings({ scriptureEnabled: e.target.checked })}
-          />
-        </label>
-        <label className="switch-row">
-          <span>俯身识别提示音（低音提示）</span>
-          <input
-            type="checkbox"
-            checked={settings.descentCueOn !== false}
-            onChange={(e) => void updateSettings({ descentCueOn: e.target.checked })}
           />
         </label>
       </section>

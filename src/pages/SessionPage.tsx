@@ -260,7 +260,7 @@ export function SessionPage() {
 
     for (const e of events) {
       if (e.type === 'armed') {
-        if (s.settings.descentCueOn !== false) playBowl();
+        playBowl();
       } else if (e.type === 'repCompleted') {
         s.onRepCompleted();
         setFlashKey((k) => k + 1);
