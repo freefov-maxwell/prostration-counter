@@ -8,7 +8,8 @@ import { DEFAULT_THRESHOLDS } from '../engine/thresholds';
 import { Baseline, FrameSignals, KP, PoseFrame } from '../engine/types';
 import { audioReady, initAudio, playBowl, playGoal, playQing, playTick, playVoice, preloadVoices, VoiceKey } from '../platform/feedback';
 import { downloadJson, drawPose } from '../platform/overlay';
-import { scripture } from '../scripture';
+import { chapterName, scripture } from '../scripture';
+import { ChapterWindow } from './ChapterWindow';
 
 type PositionKey = 'enter' | 'headOut' | 'feetOut' | 'tooFar' | 'pose' | 'hold';
 
@@ -314,7 +315,6 @@ export function SessionPage() {
 
   const { sessionCount, target, settings, charIndex, sessionStatus, machineState } = store;
   const durationSec = sessionDurationSec(store);
-  const win = settings.scriptureEnabled ? scripture.windowAt(charIndex, 6) : null;
   const debug = !!settings.debugOverlay;
 
   return (
@@ -430,11 +430,11 @@ export function SessionPage() {
         </div>
       )}
 
-      {counting && win && (
+      {counting && settings.scriptureEnabled && (
         <div className="scripture-stage">
-          <div className="ctx">{win.before}</div>
-          <div className="current-char">{win.current}</div>
-          <div className="ctx">{win.after}</div>
+          <div className="chapter-label">{chapterName(scripture.chapterOf(charIndex))}</div>
+          <div className="current-char">{scripture.chars[charIndex]}</div>
+          <ChapterWindow index={charIndex} className="ctx" />
         </div>
       )}
 

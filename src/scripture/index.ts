@@ -1,11 +1,17 @@
-// 《道德经》运行时预处理：只保留汉字（标点不入字序，已确认的产品决策），
-// 产出汉字数组 + 每章起始偏移表，O(1) 取第 N 字与上下文窗口。
+// 《道德经》运行时预处理：只有汉字入字序（标点不计数，已确认的产品决策），
+// 标点保留为显示用 token；产出汉字数组 + 每章起始偏移表 + 每章 token 表。
 import raw from './tao-te-ching.json';
 
 export interface RawScripture {
   id: string;
   title: string;
   chapters: { n: number; text: string }[];
+}
+
+/** 显示用 token：汉字带全文字序 i，标点 i = -1。 */
+export interface Token {
+  c: string;
+  i: number;
 }
 
 export interface Scripture {
@@ -17,20 +23,28 @@ export interface Scripture {
   totalChapters: number;
   /** 每章起始字偏移（与 chapters[n] 对齐）。 */
   chapterOffsets: number[];
+  /** 每章含标点的 token 序列。 */
+  chapterTokens: Token[][];
   /** 字所在章（1 起）。 */
   chapterOf(charIndex: number): number;
-  /** 当前字 + 前后各 radius 字的上下文窗口。 */
-  windowAt(charIndex: number, radius: number): { before: string; current: string; after: string };
 }
 
 export function preprocess(rawData: RawScripture): Scripture {
   const chars: string[] = [];
   const chapterOffsets: number[] = [];
+  const chapterTokens: Token[][] = [];
   for (const ch of rawData.chapters) {
     chapterOffsets.push(chars.length);
+    const tokens: Token[] = [];
     for (const c of ch.text) {
-      if (/\p{Script=Han}/u.test(c)) chars.push(c);
+      if (/\p{Script=Han}/u.test(c)) {
+        tokens.push({ c, i: chars.length });
+        chars.push(c);
+      } else if (c.trim()) {
+        tokens.push({ c, i: -1 });
+      }
     }
+    chapterTokens.push(tokens);
   }
   const totalChars = chars.length;
 
@@ -45,17 +59,6 @@ export function preprocess(rawData: RawScripture): Scripture {
     return lo + 1;
   };
 
-  const windowAt = (charIndex: number, radius: number) => {
-    const i = Math.max(0, Math.min(charIndex, totalChars - 1));
-    const slice = (a: number, b: number) =>
-      chars.slice(Math.max(0, a), Math.min(totalChars, b)).join('');
-    return {
-      before: slice(i - radius, i),
-      current: chars[i] ?? '',
-      after: slice(i + 1, i + 1 + radius),
-    };
-  };
-
   return {
     id: rawData.id,
     title: rawData.title,
@@ -63,9 +66,18 @@ export function preprocess(rawData: RawScripture): Scripture {
     totalChars,
     totalChapters: rawData.chapters.length,
     chapterOffsets,
+    chapterTokens,
     chapterOf,
-    windowAt,
   };
+}
+
+const DIGITS = '零一二三四五六七八九';
+/** 章名：1 → 第一章，21 → 第二十一章（1–99）。 */
+export function chapterName(n: number): string {
+  const t = Math.floor(n / 10);
+  const u = n % 10;
+  const tens = t === 0 ? '' : (t === 1 ? '' : DIGITS[t]) + '十';
+  return `第${tens}${u || !tens ? DIGITS[u] : ''}章`;
 }
 
 export const scripture: Scripture = preprocess(raw as RawScripture);

@@ -1,5 +1,5 @@
 import { useAppStore } from '../store/useAppStore';
-import { scripture } from '../scripture';
+import { chapterName, scripture } from '../scripture';
 
 function fmt(sec: number): string {
   const m = Math.floor(sec / 60);
@@ -44,8 +44,7 @@ export function SummaryPage() {
 
       {settings.scriptureEnabled && (
         <p className="hint center">
-          《{scripture.title}》第 {charIndex} 字 / 共 {scripture.totalChars} 字（{pct}%），第{' '}
-          {scripture.chapterOf(Math.max(0, charIndex - 1))} 章
+          《{scripture.title}》第 {charIndex} 字 / 共 {scripture.totalChars} 字（{pct}%），{chapterName(scripture.chapterOf(Math.max(0, charIndex - 1)))}
         </p>
       )}
       {count === 0 && <p className="hint center">次数为 0，本次未保存记录。</p>}

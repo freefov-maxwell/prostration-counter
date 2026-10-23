@@ -1,31 +1,103 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { exportAll } from '../db/db';
 import { downloadJson } from '../platform/overlay';
-import { scripture } from '../scripture';
+import { chapterName, scripture, type Token } from '../scripture';
 
-/** 当前字前后一小段原文，当前字高亮，便于记住进度在全文哪里。 */
-function ScriptureContext({ index }: { index: number }) {
-  const w = scripture.windowAt(index, 12);
+/** 每个字连同其后的标点分为一组：按钮是原子行内块，不分组的话标点会被挤到行首。 */
+function groupWithPunct(tokens: Token[]): Token[][] {
+  const groups: Token[][] = [];
+  for (const t of tokens) {
+    if (t.i >= 0 || !groups.length) groups.push([t]);
+    else groups[groups.length - 1].push(t);
+  }
+  return groups;
+}
+
+/** 按章浏览原文的 3 行滑动窗口：打开时当前进度行居中，滑动点选任意字，确认后作为新进度。 */
+function ScripturePicker({ current, onJump }: { current: number; onJump: (i: number) => void }) {
+  const currentChapter = scripture.chapterOf(current);
+  const [chapter, setChapter] = useState(currentChapter);
+  const [picked, setPicked] = useState<number | null>(null);
+  /** 每次「回到当前位置」+1，触发重新定位。 */
+  const [recenter, setRecenter] = useState(0);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const cur = chapter === currentChapter ? box.querySelector<HTMLElement>(`[data-i="${current}"]`) : null;
+    const lh = parseFloat(getComputedStyle(box).lineHeight);
+    box.scrollTop = cur ? (Math.round(cur.offsetTop / lh) - 1) * lh : 0;
+  }, [chapter, currentChapter, current, recenter]);
+
   return (
-    <p className="scripture-context">
-      {w.before}
-      <span className="scripture-context-current">{w.current}</span>
-      {w.after}
-    </p>
+    <>
+      <select
+        className="input"
+        value={chapter}
+        onChange={(e) => {
+          setChapter(Number(e.target.value));
+          setPicked(null);
+        }}
+        aria-label="选择章节"
+      >
+        {scripture.chapterTokens.map((_, k) => (
+          <option key={k} value={k + 1}>
+            {chapterName(k + 1)}
+          </option>
+        ))}
+      </select>
+      <div ref={boxRef} className="scripture-picker">
+        {groupWithPunct(scripture.chapterTokens[chapter - 1]).map(([t, ...punct]) => (
+          <span key={t.i} className="nowrap">
+            <button
+              data-i={t.i}
+              className={t.i === picked ? 'picked' : t.i === current ? 'progress-char' : undefined}
+              onClick={() => setPicked(t.i)}
+            >
+              {t.c}
+            </button>
+            {punct.map((p) => p.c).join('')}
+          </span>
+        ))}
+      </div>
+      <p className="hint">滑动选字，点选一个字作为新的起点（红框字为当前进度）。</p>
+      <div className="btn-row">
+        <button
+          className="btn-secondary"
+          disabled={picked == null}
+          onClick={() => {
+            if (picked == null) return;
+            setChapter(scripture.chapterOf(picked));
+            onJump(picked);
+            setPicked(null);
+          }}
+        >
+          跳转到此字
+        </button>
+        <button
+          className="btn-secondary"
+          onClick={() => {
+            setChapter(currentChapter);
+            setPicked(null);
+            setRecenter((n) => n + 1);
+          }}
+        >
+          回到当前位置
+        </button>
+      </div>
+    </>
   );
 }
 
 export function SettingsPage() {
   const { settings, updateSettings, charIndex, jumpChar, resetProgress, navigate, importBackup, sessions } = useAppStore();
-  const [jumpValue, setJumpValue] = useState('');
   const [importMsg, setImportMsg] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const pct = ((charIndex / scripture.totalChars) * 100).toFixed(1);
   const chapter = scripture.chapterOf(Math.max(0, charIndex - 1));
-  const jumpN = parseInt(jumpValue, 10);
-  const jumpPreview = Number.isFinite(jumpN) ? Math.max(0, Math.min(jumpN, scripture.totalChars - 1)) : null;
 
   const doExport = async () => {
     downloadJson(`dalibai-backup-${new Date().toISOString().slice(0, 10)}.json`, await exportAll());
@@ -54,39 +126,9 @@ export function SettingsPage() {
       <section className="section">
         <h3>文本进度</h3>
         <p className="hint">
-          《{scripture.title}》第 {charIndex} 字 / 共 {scripture.totalChars} 字（{pct}%），当前第{' '}
-          {chapter} 章
+          《{scripture.title}》第 {charIndex} 字 / 共 {scripture.totalChars} 字（{pct}%），当前{chapterName(chapter)}
         </p>
-        <ScriptureContext index={charIndex} />
-        <div className="btn-row">
-          <input
-            className="input"
-            type="number"
-            min={0}
-            max={scripture.totalChars - 1}
-            placeholder="跳转到第 N 字"
-            value={jumpValue}
-            onChange={(e) => setJumpValue(e.target.value)}
-          />
-          <button
-            className="btn-secondary"
-            onClick={() => {
-              const n = parseInt(jumpValue, 10);
-              if (Number.isFinite(n)) {
-                void jumpChar(n);
-                setJumpValue('');
-              }
-            }}
-          >
-            跳转
-          </button>
-        </div>
-        {jumpPreview != null && (
-          <>
-            <p className="hint">跳转后（第 {scripture.chapterOf(jumpPreview)} 章）：</p>
-            <ScriptureContext index={jumpPreview} />
-          </>
-        )}
+        <ScripturePicker current={charIndex} onJump={(i) => void jumpChar(i)} />
         {confirmReset ? (
           <div className="btn-row">
             <button

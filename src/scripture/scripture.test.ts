@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { preprocess, scripture } from './index';
+import { chapterName, preprocess, scripture } from './index';
 import raw from './tao-te-ching.json';
 
 const han = (s: string) => [...s].filter((c) => /\p{Script=Han}/u.test(c));
@@ -28,19 +28,20 @@ describe('《道德经》汉字预处理', () => {
     expect(scripture.chapterOf(scripture.totalChars - 1)).toBe(81);
   });
 
-  it('windowAt 返回当前字与上下文窗口', () => {
-    const ch1 = han(raw.chapters[0].text);
-    const w = scripture.windowAt(0, 6);
-    expect(w.current).toBe(ch1[0]);
-    expect(w.before).toBe('');
-    expect(w.after).toBe(ch1.slice(1, 7).join(''));
-    const w2 = scripture.windowAt(3, 2);
-    expect(w2.before).toBe(ch1.slice(1, 3).join(''));
-    expect(w2.current).toBe(ch1[3]);
+  it('标点 token 不计数，章 token 中汉字字序连续', () => {
+    const all = scripture.chapterTokens.flat().filter((t) => t.i >= 0);
+    expect(all.map((t) => t.i)).toEqual([...Array(5277).keys()]);
+  });
+
+  it('chapterName', () => {
+    expect([1, 10, 11, 20, 21, 81].map(chapterName)).toEqual([
+      '第一章', '第十章', '第十一章', '第二十章', '第二十一章', '第八十一章',
+    ]);
   });
 
   it('preprocess 对空标点文本健壮', () => {
     const s = preprocess({ id: 'x', title: 'x', chapters: [{ n: 1, text: '，。！' }] });
     expect(s.totalChars).toBe(0);
+    expect(s.chapterTokens[0].every((t) => t.i === -1)).toBe(true);
   });
 });

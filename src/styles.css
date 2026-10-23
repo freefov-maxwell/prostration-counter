@@ -522,21 +522,60 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.scripture-context {
-  margin: 4px 0 8px;
-  padding: 10px 12px;
-  background: var(--card);
-  border-radius: 10px;
-  line-height: 1.9;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
+.chapter-window {
+  height: calc(3 * var(--lh));
+  overflow: hidden;
+  box-sizing: content-box;
 }
 
-.scripture-context-current {
+.chapter-window-text {
+  position: relative;
+  line-height: var(--lh);
+  transition: transform 0.3s ease;
+}
+
+/* 只露 3 行；上下内边距为 0，行号才能按 offsetTop / 行高 算准 */
+.scripture-picker {
+  position: relative;
+  height: 120px;
+  overflow-y: auto;
+  margin: 4px 0 8px;
+  padding: 0 12px;
+  background: var(--card);
+  border-radius: 10px;
+  line-height: 40px;
+  font-size: 20px;
+  letter-spacing: 0.05em;
+}
+
+.scripture-picker .nowrap {
+  white-space: nowrap;
+}
+
+/* 正文内逐字点选：放宽全局 44px 触控下限，否则排版过散；约 30px 仍可点 */
+.scripture-picker button {
+  min-width: 0;
+  min-height: 0;
+  padding: 2px 3px;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.scripture-picker .progress-char {
   color: var(--cinnabar);
   font-weight: 700;
-  font-size: 1.25em;
-  padding: 0 2px;
+  background: var(--paper);
+  /* 描边用 box-shadow，不占位，不打乱排版 */
+  box-shadow: 0 0 0 2px var(--cinnabar);
+}
+
+.scripture-picker .picked {
+  background: var(--cinnabar);
+  color: var(--paper);
 }
 
 /* —— 准备页：摆放示意动画 —— */
@@ -679,11 +718,24 @@ button {
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
 }
 
-.scripture-stage .ctx {
-  font-size: 26px;
+.scripture-stage .chapter-label {
+  font-size: 14px;
   opacity: 0.6;
   letter-spacing: 0.2em;
-  min-height: 1.3em;
+}
+
+.scripture-stage .ctx {
+  --lh: 40px;
+  width: 100%;
+  padding: 0 16px;
+  font-size: 24px;
+  letter-spacing: 0.15em;
+  color: rgba(245, 241, 232, 0.6);
+}
+
+.scripture-stage .ctx .chapter-window-current {
+  color: #ffd9a0;
+  font-weight: 700;
 }
 
 .current-char {
