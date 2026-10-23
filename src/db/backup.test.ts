@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseBackup } from './db';
 
 describe('parseBackup 备份解析', () => {
-  it('取合法记录、丢弃 id 与坏行、读出经书进度', () => {
+  it('取合法记录、丢弃 id 与坏行、读出文本进度', () => {
     const json = JSON.stringify({
       sessions: [
         { id: 7, startedAt: 1, endedAt: 2, count: 10, manualAdjust: 1, durationSec: 60, target: 108 },

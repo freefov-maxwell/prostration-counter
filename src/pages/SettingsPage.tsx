@@ -35,7 +35,7 @@ export function SettingsPage() {
     if (!file) return;
     try {
       const added = await importBackup(await file.text());
-      setImportMsg(added ? `导入成功：新增 ${added} 条礼拜记录。` : '导入完成：备份里的记录本机都已有，没有新增。');
+      setImportMsg(added ? `导入成功：新增 ${added} 条练习记录。` : '导入完成：备份里的记录本机都已有，没有新增。');
     } catch (e) {
       setImportMsg(`导入失败：${e instanceof Error ? e.message : String(e)}`);
     }
@@ -52,7 +52,7 @@ export function SettingsPage() {
       </header>
 
       <section className="section">
-        <h3>经书进度</h3>
+        <h3>文本进度</h3>
         <p className="hint">
           《{scripture.title}》第 {charIndex} 字 / 共 {scripture.totalChars} 字（{pct}%），当前第{' '}
           {chapter} 章
@@ -104,7 +104,7 @@ export function SettingsPage() {
           </div>
         ) : (
           <button className="btn-secondary" onClick={() => setConfirmReset(true)}>
-            重置经书进度
+            重置文本进度
           </button>
         )}
       </section>
@@ -120,7 +120,7 @@ export function SettingsPage() {
           />
         </label>
         <label className="switch-row">
-          <span>下拜识别提示音（颂钵）</span>
+          <span>俯身识别提示音（低音提示）</span>
           <input
             type="checkbox"
             checked={settings.descentCueOn !== false}
@@ -140,14 +140,14 @@ export function SettingsPage() {
       <section className="section">
         <h3>数据备份与恢复</h3>
         <p className="hint">
-          你的 {sessions.length} 条礼拜记录和经书进度只保存在这台手机的浏览器里，没有云端。
+          你的 {sessions.length} 条练习记录和文本进度只保存在这台手机的浏览器里，没有云端。
           换手机、清理浏览器数据或删除主屏幕图标之前，请先导出备份。
         </p>
         <ol className="hint">
           <li>点「导出备份」，得到一个 dalibai-backup-日期.json 文件，把它存到网盘、发给自己（如微信文件传输助手）或电脑上。</li>
           <li>在新手机上打开本应用，点「导入备份」，选择这个文件即可恢复。</li>
         </ol>
-        <p className="hint">导入是合并，不会删除本机已有记录，重复导入同一份也不会重复计数；经书进度取较新的一份。</p>
+        <p className="hint">导入是合并，不会删除本机已有记录，重复导入同一份也不会重复计数；文本进度取较新的一份。</p>
         <div className="btn-row">
           <button className="btn-secondary" onClick={() => void doExport()}>
             导出备份
@@ -197,8 +197,8 @@ export function SettingsPage() {
       <section className="section">
         <h3>关于</h3>
         <p className="hint">
-          大礼拜计数 v0.1 · 纯本地运行：视频不出设备，数据仅存本机，无任何网络请求与埋点。
-          礼拜时建议插电使用。提示语音为 AI 合成。
+          归元瑜伽计数 v0.1 · 纯本地运行：视频不出设备，数据仅存本机，无任何网络请求与埋点。
+          练习时建议插电使用。提示语音为 AI 合成。
         </p>
       </section>
     </div>

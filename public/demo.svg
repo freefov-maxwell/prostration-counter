@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420" font-family="'Noto Serif SC','Songti SC','SimSun',serif">
-<title>大礼拜计数：前置摄像头识别动作，每拜自动 +1，并推进《道德经》一个字</title>
+<title>归元瑜伽计数：前置摄像头识别动作，每次自动 +1，并推进《道德经》一个字</title>
 <defs>
   <radialGradient id="glow" cx="50%" cy="50%" r="70%"><stop offset="60%" stop-color="#f0a830" stop-opacity="0"/><stop offset="100%" stop-color="#f0a830" stop-opacity="0.9"/></radialGradient>
   <clipPath id="screen"><rect x="556" y="42" width="188" height="336" rx="18"/></clipPath>
@@ -16,11 +16,11 @@
 </g>
 <circle r="14" fill="#f5f1e8" stroke="#2b2620" stroke-width="6" cx="230" cy="152"><animate attributeName="cx" dur="15s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0267;0.0667;0.1;0.14;0.1667;0.1967;0.2;0.2267;0.2667;0.3;0.34;0.3667;0.3967;0.4;0.4267;0.4667;0.5;0.54;0.5667;0.5967;0.6;0.6267;0.6667;0.7;0.74;0.7667;0.7967;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1" values="230;230;308;348;348;308;230;230;230;308;348;348;308;230;230;230;308;348;348;308;230;230;230;308;348;348;308;230;230"/><animate attributeName="cy" dur="15s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0267;0.0667;0.1;0.14;0.1667;0.1967;0.2;0.2267;0.2667;0.3;0.34;0.3667;0.3967;0.4;0.4267;0.4667;0.5;0.54;0.5667;0.5967;0.6;0.6267;0.6667;0.7;0.74;0.7667;0.7967;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1" values="152;152;246;314;314;246;152;152;152;246;314;314;246;152;152;152;246;314;314;246;152;152;152;246;314;314;246;152;152"/></circle>
 <text x="60" y="64" font-size="22" fill="#2b2620" opacity="0">站立<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0467;0.2;0.2467;0.4;0.4467;0.6;0.6467" values="1;0;1;0;1;0;1;0"/></text>
-<text x="60" y="64" font-size="22" fill="#2b2620" opacity="0">下拜<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0467;0.1;0.2467;0.3;0.4467;0.5;0.6467;0.7" values="0;1;0;1;0;1;0;1;0"/></text>
-<text x="60" y="64" font-size="22" fill="#2b2620" opacity="0">五体投地<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.1;0.1667;0.3;0.3667;0.5;0.5667;0.7;0.7667" values="0;1;0;1;0;1;0;1;0"/></text>
+<text x="60" y="64" font-size="22" fill="#2b2620" opacity="0">俯身<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0467;0.1;0.2467;0.3;0.4467;0.5;0.6467;0.7" values="0;1;0;1;0;1;0;1;0"/></text>
+<text x="60" y="64" font-size="22" fill="#2b2620" opacity="0">全身俯卧<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.1;0.1667;0.3;0.3667;0.5;0.5667;0.7;0.7667" values="0;1;0;1;0;1;0;1;0"/></text>
 <text x="60" y="64" font-size="22" fill="#2b2620" opacity="0">起身<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.1667;0.1967;0.3667;0.3967;0.5667;0.5967;0.7667;0.7967" values="0;1;0;1;0;1;0;1;0"/></text>
-<text x="60" y="64" font-size="22" fill="#9e2b25" opacity="0">圆满 108 拜<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.7967" values="0;1"/></text>
-<text x="60" y="390" font-size="16" fill="#6b6157">你只管拜，它来数</text>
+<text x="60" y="64" font-size="22" fill="#9e2b25" opacity="0">完成 108 次<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.7967" values="0;1"/></text>
+<text x="60" y="390" font-size="16" fill="#6b6157">你只管练习，它来数</text>
 
 <!-- 手机屏幕 -->
 <rect x="546" y="30" width="208" height="360" rx="28" fill="#2b2620"/>
@@ -66,7 +66,7 @@
   <text x="672" y="322" text-anchor="middle" font-size="28" font-weight="700" fill="#ffd9a0" opacity="0">常<animate attributeName="opacity" dur="15s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.7967" values="0;1"/></text>
   <text x="694" y="318" text-anchor="middle" font-size="18" fill="#ffffff" fill-opacity="0.45">道</text>
   <text x="716" y="318" text-anchor="middle" font-size="18" fill="#ffffff" fill-opacity="0.45">名</text>
-  <text x="650" y="356" text-anchor="middle" font-size="12" fill="#ffffff" fill-opacity="0.45">《道德经》每拜一字</text>
+  <text x="650" y="356" text-anchor="middle" font-size="12" fill="#ffffff" fill-opacity="0.45">《道德经》每次一字</text>
 </g>
 <text x="650" y="410" text-anchor="middle" font-size="14" fill="#6b6157">手机屏幕</text>
 </svg>

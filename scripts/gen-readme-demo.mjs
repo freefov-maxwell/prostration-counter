@@ -1,7 +1,7 @@
 // 生成 README 示意动画（SMIL，GitHub <img> 内可播放）：node scripts/gen-readme-demo.mjs docs/demo.svg
 import { writeFileSync } from 'node:fs';
 
-const T = 15; // 4 拜 × 3s + 3s 圆满停留
+const T = 15; // 4 次 × 3s + 3s 完成后停留
 const out = process.argv[2];
 const f = (t) => +(t / T).toFixed(4);
 
@@ -35,11 +35,11 @@ const win = (k, on = 1, off = 0) => {
   return `<animate attributeName="opacity" dur="${T}s" repeatCount="indefinite" calcMode="discrete" keyTimes="${times.join(';')}" values="${vals.join(';')}"/>`;
 };
 
-// 相位文字（每拜内）
+// 相位文字（每次内）
 const phases = [
   ['站立', 0, 0.7],
-  ['下拜', 0.7, 1.5],
-  ['五体投地', 1.5, 2.5],
+  ['俯身', 0.7, 1.5],
+  ['全身俯卧', 1.5, 2.5],
   ['起身', 2.5, 2.95],
 ];
 const phaseAnim = (s, e) => {
@@ -52,7 +52,7 @@ const phaseAnim = (s, e) => {
   return `<animate attributeName="opacity" dur="${T}s" repeatCount="indefinite" calcMode="discrete" keyTimes="${times.join(';')}" values="${vals.join(';')}"/>`;
 };
 
-// 俯地/起身阶段手机屏边缘光晕（"已识别下拜"）
+// 俯地/起身阶段手机屏边缘光晕（"已识别俯身"）
 const glowK = [0], glowV = [0];
 for (let r = 0; r < 4; r++) {
   const b = r * 3;
@@ -66,7 +66,7 @@ const chars = '道可道非常道名';
 const cx0 = 650 - ((chars.length - 1) * 22) / 2;
 
 let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420" font-family="'Noto Serif SC','Songti SC','SimSun',serif">
-<title>大礼拜计数：前置摄像头识别动作，每拜自动 +1，并推进《道德经》一个字</title>
+<title>归元瑜伽计数：前置摄像头识别动作，每次自动 +1，并推进《道德经》一个字</title>
 <defs>
   <radialGradient id="glow" cx="50%" cy="50%" r="70%"><stop offset="60%" stop-color="#f0a830" stop-opacity="0"/><stop offset="100%" stop-color="#f0a830" stop-opacity="0.9"/></radialGradient>
   <clipPath id="screen"><rect x="556" y="42" width="188" height="336" rx="18"/></clipPath>
@@ -86,8 +86,8 @@ let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="
 phases.forEach(([label, s, e]) => {
   svg += `<text x="60" y="64" font-size="22" fill="#2b2620" opacity="0">${label}${phaseAnim(s, e)}</text>\n`;
 });
-svg += `<text x="60" y="64" font-size="22" fill="#9e2b25" opacity="0">圆满 108 拜${win(4)}</text>
-<text x="60" y="390" font-size="16" fill="#6b6157">你只管拜，它来数</text>
+svg += `<text x="60" y="64" font-size="22" fill="#9e2b25" opacity="0">完成 108 次${win(4)}</text>
+<text x="60" y="390" font-size="16" fill="#6b6157">你只管练习，它来数</text>
 
 <!-- 手机屏幕 -->
 <rect x="546" y="30" width="208" height="360" rx="28" fill="#2b2620"/>
@@ -116,7 +116,7 @@ svg += `  <text x="650" y="196" text-anchor="middle" font-size="13" fill="#fffff
   svg += `  <text x="${x}" y="318" text-anchor="middle" font-size="18" fill="#ffffff" fill-opacity="0.45">${ch}${dim}</text>\n`;
   if (i < 5) svg += `  <text x="${x}" y="322" text-anchor="middle" font-size="28" font-weight="700" fill="#ffd9a0" opacity="${i === 0 ? 1 : 0}">${ch}${win(i)}</text>\n`;
 });
-svg += `  <text x="650" y="356" text-anchor="middle" font-size="12" fill="#ffffff" fill-opacity="0.45">《道德经》每拜一字</text>
+svg += `  <text x="650" y="356" text-anchor="middle" font-size="12" fill="#ffffff" fill-opacity="0.45">《道德经》每次一字</text>
 </g>
 <text x="650" y="410" text-anchor="middle" font-size="14" fill="#6b6157">手机屏幕</text>
 </svg>

@@ -27,7 +27,7 @@ export function SummaryPage() {
       <div className="big-count summary-count">{count}</div>
       {target != null && (
         <p className="hint center">
-          目标 {target} 拜{count >= target ? '，已达成' : ''}
+          目标 {target} 次{count >= target ? '，已达成' : ''}
         </p>
       )}
 
@@ -38,7 +38,7 @@ export function SummaryPage() {
         </div>
         <div className="stat-card">
           <div className="stat-value">{avgPaceSec != null ? `${avgPaceSec}s` : '—'}</div>
-          <div className="stat-label">平均节奏 / 拜</div>
+          <div className="stat-label">平均节奏 / 次</div>
         </div>
       </div>
 

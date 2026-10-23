@@ -93,7 +93,7 @@ describe('SignalExtractor 多信号姿态判定', () => {
     const sig = settle(new SignalExtractor(baseline), squat);
     expect(sig.headDrop!).toBeGreaterThan(0.45);
     expect(sig.standing).toBe(false);
-    expect(sig.lowness).toBeLessThan(0.3); // 连下拜趋势都不触发
+    expect(sig.lowness).toBeLessThan(0.3); // 连俯身趋势都不触发
   });
 
   it('扑向镜头途中：远近比 ≥ 1.25 后头部下降开始计入低位', () => {

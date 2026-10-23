@@ -25,7 +25,7 @@ export interface Settings {
   soundOn: boolean;
   scriptureEnabled: boolean;
   defaultTarget?: number;
-  /** 下拜识别提示音（颂钵），未设置视为开启。 */
+  /** 俯身识别提示音（低音提示），未设置视为开启。 */
   descentCueOn?: boolean;
   /** 调试：相机页叠加骨架与识别数值。 */
   debugOverlay?: boolean;
@@ -105,7 +105,7 @@ export function parseBackup(json: string): { sessions: Session[]; progress?: Scr
   } catch {
     data = null;
   }
-  if (!data || !Array.isArray(data.sessions)) throw new Error('这不是大礼拜计数导出的备份文件');
+  if (!data || !Array.isArray(data.sessions)) throw new Error('这不是归元瑜伽计数导出的备份文件');
   const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
   const sessions: Session[] = data.sessions
     .filter((s: Session) => s && num(s.startedAt) && num(s.endedAt) && num(s.count) && num(s.durationSec))
@@ -127,7 +127,7 @@ export function parseBackup(json: string): { sessions: Session[]; progress?: Scr
 
 /**
  * 导入备份：与本机记录合并，开始时间相同视为同一条不重复计；
- * 经书进度取较新的一份（本机尚未开始读则以备份为准）；设置保持本机不变。返回新增条数。
+ * 文本进度取较新的一份（本机尚未开始读则以备份为准）；设置保持本机不变。返回新增条数。
  */
 export async function importAll(json: string): Promise<number> {
   const { sessions, progress } = parseBackup(json);

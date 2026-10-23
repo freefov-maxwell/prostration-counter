@@ -5,7 +5,7 @@ export function UnsupportedPage({ reasons }: { reasons: string[] }) {
     <div className="page">
       <WeChatBanner />
       <header className="home-header">
-        <h1>大礼拜计数</h1>
+        <h1>归元瑜伽计数</h1>
       </header>
       <div className="panel">
         <p>当前环境无法使用本应用：</p>

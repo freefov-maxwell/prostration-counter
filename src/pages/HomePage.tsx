@@ -45,7 +45,7 @@ function InstallSection() {
       </p>
       {isIOS() && (
         <p className="hint">
-          注意：iPhone 上主屏幕图标与 Safari 里的数据互不相通。如果已在 Safari 中有礼拜记录，先在「设置 → 导出备份」，再从主屏幕图标打开后「导入备份」。
+          注意：iPhone 上主屏幕图标与 Safari 里的数据互不相通。如果已在 Safari 中有练习记录，先在「设置 → 导出备份」，再从主屏幕图标打开后「导入备份」。
         </p>
       )}
     </section>
@@ -53,10 +53,10 @@ function InstallSection() {
 }
 
 const FEATURES = [
-  ['自动计数', '识别「站立 → 下拜 → 五体投地 → 起身」完整一拜，起身站稳自动 +1，什么都不用按。'],
-  ['听声即知，不用看屏', '识别到下拜一声颂钵，完成一拜一声清磬，达成目标另有提示。'],
+  ['自动计数', '识别「站立 → 俯身 → 全身俯卧 → 起身」完整一次动作，起身站稳自动 +1，什么都不用按。'],
+  ['听声即知，不用看屏', '识别到俯身一声低音提示，完成一次动作一声高音提示，达成目标另有提示。'],
   ['语音引导站位', '「请后退一步」「离得太远了」……按提示站好，倒数 5 秒自动开始。'],
-  ['每拜一字', '可选开启《道德经》全文随拜推进，进度跨天累计，功课做完，经也读了。'],
+  ['每次一字', '可选开启《道德经》全文随动作推进，进度跨天累计，练习结束，阅读进度也会保存。'],
   ['离开自动暂停', '接电话、开门，人走出画面即暂停，回来站好自动继续。'],
 ] as const;
 
@@ -72,14 +72,14 @@ function Intro({ firstTime, onStart, onSkip }: { firstTime: boolean; onStart(): 
       <WeChatBanner />
       <header className="home-header">
         <img className="intro-icon" src={`${import.meta.env.BASE_URL}icons/icon-192.png`} alt="" />
-        <h1>大礼拜计数</h1>
-        <p className="intro-tagline">把手机立在拜垫前，你只管磕头，它来数。</p>
+        <h1>归元瑜伽计数</h1>
+        <p className="intro-tagline">把手机立在垫子前，你只管练习，它来数。</p>
       </header>
 
       <img
         className="intro-demo"
         src={`${import.meta.env.BASE_URL}demo.svg`}
-        alt="示意动画：人做大礼拜，手机屏幕上的计数自动增加，《道德经》逐字前进"
+        alt="示意动画：人做归元瑜伽，手机屏幕上的计数自动增加，《道德经》逐字前进"
       />
 
       <section className="section">
@@ -110,12 +110,15 @@ function Intro({ firstTime, onStart, onSkip }: { firstTime: boolean; onStart(): 
 
       <div className="intro-cta">
         <button className="btn-primary btn-huge" onClick={onStart}>
-          {firstTime ? '开始第一次礼拜' : '开始礼拜'}
+          {firstTime ? '开始第一次练习' : '开始练习'}
         </button>
         <button className="btn-text" onClick={onSkip}>
           {firstTime ? '先看看首页' : '返回首页'}
         </button>
       </div>
+      <footer className="hint center brand-footer">
+        <a href="https://shizhao.org.cn/" target="_blank" rel="noopener noreferrer">时照启明堂</a>
+      </footer>
     </div>
   );
 }
@@ -148,14 +151,14 @@ export function HomePage() {
     <div className="page home">
       <WeChatBanner />
       <header className="home-header">
-        <h1>大礼拜计数</h1>
-        <p className="subtitle">专注修行，自动计数</p>
+        <h1>归元瑜伽计数</h1>
+        <p className="subtitle">专注练习，自动计数</p>
       </header>
 
       <div className="today-cards">
         <div className="stat-card">
           <div className="stat-value">{today}</div>
-          <div className="stat-label">今日已拜</div>
+          <div className="stat-label">今日已完成</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{streak}</div>
@@ -164,7 +167,7 @@ export function HomePage() {
       </div>
 
       <button className="btn-primary btn-huge" onClick={beginPrepare}>
-        开始礼拜
+        开始练习
       </button>
 
       <nav className="home-nav">
@@ -180,6 +183,9 @@ export function HomePage() {
       </nav>
 
       <InstallHint />
+      <footer className="hint center brand-footer">
+        <a href="https://shizhao.org.cn/" target="_blank" rel="noopener noreferrer">时照启明堂</a>
+      </footer>
     </div>
   );
 }

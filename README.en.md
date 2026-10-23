@@ -2,13 +2,13 @@
 
 [简体中文](README.md) | English
 
-<img src="public/icons/icon-192.png" width="96" alt="Prostration Counter icon" />
+<img src="public/icons/icon-192.png" width="96" alt="Guiyuan Yoga Counter icon" />
 
-# Prostration Counter
+# Guiyuan Yoga Counter
 
-**Prop your phone up in front of your mat. You prostrate — it counts.**
+**Prop your phone up in front of your mat. You practise — it counts.**
 
-A free web app that uses your phone's front camera to count full-body prostrations automatically. Optionally, each prostration reveals the next character of the *Tao Te Ching*.<br/>
+A free web app that uses your phone's front camera to count Guiyuan Yoga movements automatically. Optionally, each repetition reveals the next character of the *Tao Te Ching*.<br/>
 Runs in the browser · nothing to install · no sign-up · video never leaves your phone
 
 [![Try it now](https://img.shields.io/badge/Try_it_now-Open_in_browser-9e2b25?style=for-the-badge)](https://freefov-maxwell.github.io/prostration-counter/)
@@ -20,7 +20,7 @@ Runs in the browser · nothing to install · no sign-up · video never leaves yo
 
 <br/>
 
-<img src="public/demo.svg" width="760" alt="Animation: a figure performs prostrations while the phone screen counts from 104 to 108 and advances through the Tao Te Ching" />
+<img src="public/demo.svg" width="760" alt="Animation: a figure performs Guiyuan Yoga movements while the phone screen counts from 104 to 108 and advances through the Tao Te Ching" />
 
 </div>
 
@@ -28,12 +28,14 @@ Runs in the browser · nothing to install · no sign-up · video never leaves yo
 
 ---
 
+Guiyuan Yoga practice reference: [Shi Zhao Qi Ming Tang's membership page](https://shizhao.org.cn/membership). This tool provides automatic counting, session history, and optional text display.
+
 ## Why
 
-Full-body prostrations are a core practice in many traditions. Tibetan Buddhist *ngöndro*, for example, includes 100,000 of them, and daily sets of 108 are common. Keeping count is harder than it sounds:
+Counting repeated full-body movements can interrupt concentration. This app helps you track each session and your progress over time:
 
 - 🧮 **Counting in your head breaks concentration**, and it's easy to lose track.
-- 📿 **Malas and tally counters need a free hand**, and you don't have one when you're flat on the floor.
+- 🔢 **Handheld tally counters need a free hand**, and you don't have one when you're flat on the floor.
 - 📅 **Long commitments need records.** Without them you can't see how far you've come.
 
 This app fixes that. Stand your phone up in front of you, and every time you return to standing it adds **+1**. You don't press anything.
@@ -42,12 +44,12 @@ This app fixes that. Stand your phone up in front of you, and every time you ret
 
 | | |
 |---|---|
-| 🙏 **Automatic counting** | Detects the full cycle (standing → bowing down → lying prostrate → rising) and adds +1 once you're standing again |
-| 🔔 **Audio cues, so you don't watch the screen** | A singing-bowl tone when it detects you going down, a chime for each completed prostration, and a separate cue when you reach your goal |
+| 🔢 **Automatic counting** | Detects the full cycle (standing → bending down → lying flat → rising) and adds +1 once you're standing again |
+| 🔔 **Audio cues, so you don't watch the screen** | A low tone when it detects you going down, a chime for each completed repetition, and a separate cue when you reach your goal |
 | 🗣️ **Voice positioning guide** | Spoken prompts such as "step back, your head is out of frame" help you get into position, followed by a 5-second countdown before counting starts |
 | ⏸️ **Auto-pause** | Walk out of frame (to answer the phone, say) and counting pauses. Step back in and it carries on |
 | 📊 **Stats and streaks** | Today's count, day streak, total count and time, 7- and 30-day charts, and a log of every session |
-| 📜 **One character per prostration (optional)** | Off by default. Turn it on and the full *Tao Te Ching* (5,277 characters) advances one character with each prostration, with progress kept across days |
+| 📜 **One character per repetition (optional)** | Off by default. Turn it on and the full *Tao Te Ching* (5,277 characters) advances one character with each repetition, with progress kept across days |
 | 🔒 **Private by design** | Pose detection runs entirely on your phone. **No video is uploaded or recorded**, and your data stays on your device. No account, no ads |
 | 📶 **Works offline** | The first visit downloads a ~16 MB detection model. After that it works without a connection, and you can add it to your home screen like an app |
 
@@ -67,7 +69,7 @@ This app fixes that. Stand your phone up in front of you, and every time you ret
 <table>
   <tr>
     <td width="200" align="center">
-      <img src="docs/qrcode.png" width="160" alt="QR code to open Prostration Counter" /><br/>
+      <img src="docs/qrcode.png" width="160" alt="QR code to open Guiyuan Yoga Counter" /><br/>
       <sub>Scan with your phone</sub>
     </td>
     <td>
@@ -84,9 +86,9 @@ This app fixes that. Stand your phone up in front of you, and every time you ret
 ### A full session
 
 1. **Place your phone.** Stand it upright with the screen facing you, bottom on the floor and tilted slightly back (leaning it on a cup or a book is fine). Put it **about 10–20 cm beyond your fingertips** when you're lying flat with your arms stretched out.
-2. **Tap 开始礼拜 (Start), then 开始**, and allow camera access. To read along, switch on 显示《道德经》逐字 (*Show Tao Te Ching*) on the prepare page.
+2. **Tap 开始练习 (Start), then 开始**, and allow camera access. To read along, switch on 显示《道德经》逐字 (*Show Tao Te Ching*) on the prepare page.
 3. **Step back and stand still.** Your whole body should be in frame, standing straight with your arms relaxed at your sides. Voice prompts help you adjust, and counting starts after a **5-second countdown**.
-4. **Prostrate.** The 🔔 singing bowl means a bow has been detected. Stand back up and the chime means **+1**.
+4. **Practise.** The 🔔 low tone means a bow has been detected. Stand back up and the chime means **+1**.
 5. **Finish.** Tap 结束 (End) to save the session. Your totals and streak update automatically.
 
 > 💡 **Tips**
@@ -124,7 +126,7 @@ Each camera frame goes to the lightweight Google [MoveNet](https://www.tensorflo
 ```mermaid
 flowchart LR
     A[Standing<br/>full body in frame] -->|hips and head drop| B[Bowing<br/>🔔 bowl]
-    B --> C[Prostrate<br/>skeleton may be partial]
+    B --> C[Lying flat<br/>skeleton may be partial]
     C -->|rise| D[Stable standing again]
     D -->|"+1 · chime · next character"| A
 ```
@@ -140,12 +142,12 @@ The count is anchored to **returning to a stable standing position**, where the 
 - [x] Offline PWA
 - [ ] English (and other) UI translations
 - [ ] WeChat Mini Program version
-- [ ] More texts (Heart Sutra, Diamond Sutra…) and custom text
+- [ ] More texts and custom text
 - [ ] Sync across devices
 
 ## 🤝 Contributing
 
-- Find it useful? A ⭐ **Star**, or sharing it with your sangha or practice group, helps a lot.
+- Find it useful? A ⭐ **Star**, or sharing it with others who might find it useful, helps a lot.
 - Detection problems or device issues? Please open an [issue](https://github.com/freefov-maxwell/prostration-counter/issues). Your phone model and how you placed it help a lot.
 - PRs are very welcome, especially **UI translations**, new texts and detection improvements.
 
@@ -173,3 +175,7 @@ The default build uses `/` for Cloudflare. The GitHub Pages workflow uses `npm r
 [MIT](LICENSE) © freefov-maxwell
 
 The pose detection models and runtimes come from Google MoveNet / TensorFlow.js and MediaPipe (both Apache-2.0). The *Tao Te Ching* text is in the public domain.
+
+---
+
+[时照启明堂](https://shizhao.org.cn/)

@@ -52,7 +52,7 @@ class Driver {
     return this;
   }
 
-  /** 一个完整大礼拜：下拜 → 俯地（含伸展）→ 回收成蹲 → 站起。 */
+  /** 一个完整归元瑜伽：俯身 → 俯地（含伸展）→ 回收成蹲 → 站起。 */
   rep() {
     return this.feed(600, GOING_DOWN).feed(3000, LOW).feed(1500, SQUAT).feed(1000, STAND);
   }
@@ -67,8 +67,8 @@ class Driver {
   }
 }
 
-describe('计数状态机：下拜 → 起身', () => {
-  it('站好后连续 3 拜计 3，每拜各上膛一次', () => {
+describe('计数状态机：俯身 → 起身', () => {
+  it('站好后连续 3 拜计 3，每次各上膛一次', () => {
     const d = new Driver().feed(1000, STAND);
     expect(d.state.state).toBe('STANDING');
     d.rep().rep().rep();
@@ -110,13 +110,13 @@ describe('计数状态机：下拜 → 起身', () => {
     expect(d.state.count).toBe(0);
   });
 
-  it('单帧抖动不触发下拜', () => {
+  it('单帧抖动不触发俯身', () => {
     const d = new Driver().feed(1000, STAND);
     d.feed(DT, GOING_DOWN).feed(1000, STAND);
     expect(d.count('stateChanged')).toBe(1); // 只有 IDLE → STANDING
   });
 
-  it('下拜 15s 仍到不了低位 → 作废，需重新站好', () => {
+  it('俯身 15s 仍到不了低位 → 作废，需重新站好', () => {
     const d = new Driver().feed(1000, STAND);
     d.feed(16000, GOING_DOWN);
     expect(d.state.state).toBe('IDLE');
@@ -139,7 +139,7 @@ describe('计数状态机：下拜 → 起身', () => {
     expect(d.count('armed')).toBe(0);
   });
 
-  it('连贯动作：起身后立刻合掌、接着再拜，每拜都计且不合并', () => {
+  it('连贯动作：起身后立刻合掌、接着再拜，每次都计且不合并', () => {
     const d = new Driver().feed(1000, STAND);
     d.flowingRep().flowingRep().flowingRep();
     expect(d.state.count).toBe(3);
@@ -187,7 +187,7 @@ describe('计数状态机：下拜 → 起身', () => {
 
   it('站位漂移（稳稳站着但对不上基准）0.8s 后请求重取基准，不卡在 IDLE', () => {
     const d = new Driver().feed(1000, STAND);
-    // 实际路径：被当成下拜 → 表观身高高于基准，判为走近作废 → IDLE → 站稳 0.8s 重取基准
+    // 实际路径：被当成俯身 → 表观身高高于基准，判为走近作废 → IDLE → 站稳 0.8s 重取基准
     d.feed(1500, { standing: false, stance: true, lowness: 0.6, headDrop: -0.3, heightRatio: 1.34 });
     expect(d.count('reanchor')).toBe(1);
     expect(d.count('armed')).toBe(0);
@@ -210,13 +210,13 @@ describe('计数状态机：下拜 → 起身', () => {
     expect(d.state.count).toBe(0);
   });
 
-  it('站直时、走动 / 下拜中（站姿不成立）不重取基准', () => {
+  it('站直时、走动 / 俯身中（站姿不成立）不重取基准', () => {
     const d = new Driver().feed(3000, STAND);
     d.feed(600, GOING_DOWN).feed(3000, LOW).feed(1500, SQUAT).feed(1000, STAND);
     expect(d.count('reanchor')).toBe(0);
   });
 
-  it('下拜中脸贴地识别丢失，丢失时间计入低位并上膛', () => {
+  it('俯身中脸贴地识别丢失，丢失时间计入低位并上膛', () => {
     const d = new Driver().feed(1000, STAND);
     d.feed(600, { ...GOING_DOWN, lowness: 0.8 }).feed(2000, LOST);
     expect(d.count('armed')).toBe(1);

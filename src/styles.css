@@ -1,4 +1,4 @@
-/* 素雅/禅意：米纸色底、墨色字、朱砂点缀 */
+/* 素雅/简洁：米纸色底、墨色字、朱砂点缀 */
 :root {
   --paper: #f5f1e8;
   --ink: #2b2620;
@@ -153,6 +153,16 @@ button {
   color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.brand-footer {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.brand-footer a {
+  color: inherit;
+  text-underline-offset: 3px;
 }
 
 .hint.center {

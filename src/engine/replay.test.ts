@@ -6,14 +6,14 @@ import { initialMachineState, stepMachine } from './stateMachine';
 
 const files = import.meta.glob<string>('../../data/*.json', { query: '?raw', import: 'default', eager: true });
 
-/** [录制文件时间戳, 实际大礼拜次数, 内容] */
+/** [录制文件时间戳, 实际归元瑜伽次数, 内容] */
 const RECORDINGS: [string, number, string][] = [
   ['T05-33-36-465Z', 3, 'movenet：先走近镜头再退回 3 次，再 3 拜'],
   ['T05-38-59-296Z', 3, 'mediapipe：先走近镜头再退回 3 次，再 3 拜'],
   ['T08-09-03-858Z', 9, 'movenet 15fps：正常 3 拜、快拜 3、合掌挡脸起身 2、跪停 5s 后起身 1'],
   ['T08-10-50-501Z', 0, 'movenet 15fps：鞠躬、走到手机前蹲下、坐地、走动'],
   ['T08-12-03-977Z', 3, 'movenet 15fps：拜后不回原位（向前漂移后又退回）'],
-  // T08-40-59-758Z / T08-42-11-849Z：叩头（跪拜不扑地）+ 大礼拜，叩头目前会被计数，暂不纳入
+  // T08-40-59-758Z / T08-42-11-849Z：叩头（跪拜不扑地）+ 归元瑜伽，叩头目前会被计数，暂不纳入
 ];
 
 /** fps：按 App 的推理限速降采样回放（录制时为 43–60fps，App 现限速 15fps）。 */

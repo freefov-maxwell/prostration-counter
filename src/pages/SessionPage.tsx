@@ -233,7 +233,7 @@ export function SessionPage() {
     const { state, events } = stepMachine(machineRef.current, sig);
     machineRef.current = state;
 
-    // 圆环：下拜中随低位程度填充，上膛后填满
+    // 圆环：俯身中随低位程度填充，上膛后填满
     const progress = isArmed(state.state) ? 1 : state.state === 'DESCENDING' ? Math.min(1, Math.max(0, sig.lowness)) : 0;
     ringRef.current?.setAttribute('stroke-dashoffset', String(RING_C * (1 - progress)));
 

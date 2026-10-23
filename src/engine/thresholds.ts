@@ -26,15 +26,15 @@ export interface Thresholds {
   lowHeadScaleMin: number;
 
   // —— 动作识别（时序） ——
-  /** 离开站直且 lowness ≥ 此值，才算开始下拜。 */
+  /** 离开站直且 lowness ≥ 此值，才算开始俯身。 */
   descendLowness: number;
-  /** 下拜趋势需连续保持的时长，滤掉单帧抖动。 */
+  /** 俯身趋势需连续保持的时长，滤掉单帧抖动。 */
   descendConfirmMs: number;
   /** 低位累计时长下限：到达后"上膛"，排除弯腰点头。 */
   lowConfirmMs: number;
   /** 上膛前须见到头部下沉：headDrop ≥ 此值累计 descendConfirmMs（站着走近镜头头是上升的）。 */
   armHeadDrop: number;
-  /** 下拜中表观身高比 ≥ 此值累计 descendConfirmMs → 判为站着走近镜头，本次作废。 */
+  /** 俯身中表观身高比 ≥ 此值累计 descendConfirmMs → 判为站着走近镜头，本次作废。 */
   approachHeightRatio: number;
   /** 回看用的低位：headDrop ≥ 此值（跪 / 蹲的头部高度）或 lowness ≥ 1，不论远近。 */
   riseFromHeadDrop: number;
@@ -44,23 +44,23 @@ export interface Thresholds {
   uprightHoldMs: number;
   /** 回看窗口：终点出现前此时长内仍在低位，才算一次起身。 */
   riseWindowMs: number;
-  /** 下拜开始后迟迟到不了低位 → 作废。 */
+  /** 俯身开始后迟迟到不了低位 → 作废。 */
   descendTimeoutMs: number;
   /** 站姿（不依赖基准）保持此时长却判不出站直 → 站位变了，重取基准。 */
   reanchorMs: number;
   /** 站直需保持的时长（起始与计数都用）。 */
   standHoldMs: number;
-  /** 下拜中人丢失时，lowness ≥ 此值则丢失时间也计入低位（脸贴地常识别不到）。 */
+  /** 俯身中人丢失时，lowness ≥ 此值则丢失时间也计入低位（脸贴地常识别不到）。 */
   lostAsLowLowness: number;
 
   // —— 丢失 / 暂停 ——
-  /** 站立或下拜阶段看不到人超过此时长 → 暂停。 */
+  /** 站立或俯身阶段看不到人超过此时长 → 暂停。 */
   lostToPauseMs: number;
   /** 已上膛（低位）阶段看不到人超过此时长 → 本拜作废并暂停。 */
   armedLostMs: number;
 
   // —— 基准 ——
-  /** 每次站直后基准向当前值靠拢的比例（容忍每拜之间站位前后移动）。 */
+  /** 每次站直后基准向当前值靠拢的比例（容忍每次之间站位前后移动）。 */
   baselineAdapt: number;
   /** 起始站位：人体高度下限（防站太远关键点过小）。 */
   targetHeightMin: number;

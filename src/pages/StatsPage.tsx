@@ -89,12 +89,12 @@ export function StatsPage() {
 
       <section className="section">
         <h3>历史记录</h3>
-        {sessions.length === 0 && <p className="hint">还没有记录，开始第一次大礼拜吧。</p>}
+        {sessions.length === 0 && <p className="hint">还没有记录，开始第一次归元瑜伽吧。</p>}
         <ul className="history-list">
           {sessions.map((s) => (
             <li key={s.id} className="history-item">
               <span>{fmtTime(s.startedAt)}</span>
-              <span>{s.count} 拜</span>
+              <span>{s.count} 次</span>
               <span>{fmtDuration(s.durationSec)}</span>
               <button
                 className="btn-text danger"

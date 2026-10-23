@@ -181,7 +181,7 @@ export class SignalExtractor {
     out.upright = m.upright;
     out.stance = m.legRatio != null && m.legRatio >= th.stanceLegRatio && m.noseY != null;
 
-    // 以远近比为主：大礼拜会扑向镜头，原地蹲起不会；头部下降只在人确实靠近时才计入
+    // 以远近比为主：归元瑜伽会扑向镜头，原地蹲起不会；头部下降只在人确实靠近时才计入
     if (out.scale != null) {
       const scaleTerm = (out.scale - 1) / (th.lowScale - 1);
       const headTerm =
@@ -206,7 +206,7 @@ export class SignalExtractor {
     return this.baseline;
   }
 
-  /** 站直确认后调用：基准向最近的站姿测量值靠拢，容忍每拜之间站位前后移动。 */
+  /** 站直确认后调用：基准向最近的站姿测量值靠拢，容忍每次之间站位前后移动。 */
   rebase(): void {
     const a = this.th.baselineAdapt;
     const b = this.baseline;

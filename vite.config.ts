@@ -16,9 +16,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png'],
       manifest: {
-        name: '大礼拜计数',
-        short_name: '大礼拜',
-        description: '前置摄像头自动为大礼拜（磕大头）计数，附《道德经》逐字同行。',
+        name: '归元瑜伽计数',
+        short_name: '归元瑜伽',
+        description: '前置摄像头自动为归元瑜伽计数，附《道德经》逐字同行。',
         lang: 'zh-CN',
         display: 'standalone',
         orientation: 'portrait',

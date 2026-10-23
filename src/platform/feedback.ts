@@ -12,7 +12,7 @@ export function initAudio(): void {
 /** 一个分音：频率倍数、峰值音量、衰减时长（秒）。 */
 type Partial = [ratio: number, gain: number, decay: number];
 
-/** 敲击类乐器：多个正弦分音同时起振、各自指数衰减；略失谐的分音对产生拍频（颂钵的"嗡嗡"感）。 */
+/** 敲击类乐器：多个正弦分音同时起振、各自指数衰减；略失谐的分音对产生拍频（低音提示的"嗡嗡"感）。 */
 function strike(f0: number, partials: Partial[], attack: number, master: number, delay = 0): void {
   if (!ctx || ctx.state !== 'running') return;
   const c = ctx;
@@ -34,7 +34,7 @@ function strike(f0: number, partials: Partial[], attack: number, master: number,
   }
 }
 
-/** 颂钵（低沉、悠长）：下拜已识别。分音比取自典型颂钵频谱。 */
+/** 低沉、悠长的提示音：俯身已识别。 */
 export function playBowl(): void {
   strike(
     196,
@@ -50,7 +50,7 @@ export function playBowl(): void {
   );
 }
 
-/** 磬（清亮、短促）：一拜完成计数。 */
+/** 提示音（清亮、短促）：一次动作完成计数。 */
 export function playQing(delay = 0, f0 = 784): void {
   strike(
     f0,
@@ -72,7 +72,7 @@ export function playTick(): void {
   strike(1200, [[1, 0.5, 0.12], [2.7, 0.15, 0.06]], 0.002, 0.35);
 }
 
-/** 目标达成：两声上行的磬。 */
+/** 目标达成：两声上行的提示音。 */
 export function playGoal(): void {
   playQing(0, 784);
   playQing(0.45, 1046);

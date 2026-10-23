@@ -38,7 +38,7 @@ function PlacementGuide() {
       <ul className="placement-tips">
         <li>手机竖放，屏幕朝向你，底部着地、略向后仰（可靠在水杯或书上）</li>
         <li>放在你趴下伸直手臂后，指尖前方约 10–20 厘米处（碰不到即可）</li>
-        <li>站在起拜位置时，头到脚都要在画面里；光线充足效果更好</li>
+        <li>站在起始位置时，头到脚都要在画面里；光线充足效果更好</li>
       </ul>
     </section>
   );
@@ -93,7 +93,7 @@ export function PreparePage() {
             className={targetChoice === '108' ? 'chip chip-active' : 'chip'}
             onClick={() => setTargetChoice('108')}
           >
-            108 拜
+            108 次
           </button>
           <button
             className={targetChoice === 'custom' ? 'chip chip-active' : 'chip'}
@@ -133,7 +133,7 @@ export function PreparePage() {
           />
         </label>
         <label className="switch-row">
-          <span>下拜识别提示音（颂钵）</span>
+          <span>俯身识别提示音（低音提示）</span>
           <input
             type="checkbox"
             checked={settings.descentCueOn !== false}
