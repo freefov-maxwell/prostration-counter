@@ -1,7 +1,7 @@
 // 声音/震动反馈（PRD F8）。AudioContext 必须在用户手势中初始化（iOS 限制）。
 let ctx: AudioContext | null = null;
 
-export function initAudio(): void {
+export async function initAudio(): Promise<void> {
   if (!ctx) {
     const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (AC) ctx = new AC();
@@ -9,7 +9,7 @@ export function initAudio(): void {
   // iOS 17+：按媒体播放处理，静音键打开时也能出声；不支持的环境忽略
   const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
   if (session) session.type = 'playback';
-  ctx?.resume().catch(() => undefined);
+  await ctx?.resume().catch(() => undefined);
 }
 
 /** 声音是否可播放；被系统挂起（锁屏、来电、切后台）时为 false，需用户点击后 initAudio 恢复。 */

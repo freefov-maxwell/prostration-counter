@@ -12,6 +12,7 @@ import {
 } from '../db/db';
 import { RepState } from '../engine/stateMachine';
 import { scripture } from '../scripture';
+import { initAudio } from '../platform/feedback';
 
 export type Page =
   | 'home'
@@ -110,6 +111,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   navigate(page) {
+    if (page === 'prepare') void initAudio();
     set({ page });
   },
 
@@ -125,7 +127,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   beginPrepare() {
-    set({ page: 'prepare' });
+    get().navigate('prepare');
   },
 
   beginSession(target) {

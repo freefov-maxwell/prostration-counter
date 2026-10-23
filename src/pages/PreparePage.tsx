@@ -139,8 +139,8 @@ export function PreparePage() {
         <p className="hint">练习全程靠提示音和语音引导，开始前请试听确认。不想太响可调小音量，但不要调到静音。</p>
         <button
           className="btn-secondary"
-          onClick={() => {
-            initAudio();
+          onClick={async () => {
+            await initAudio();
             playQing();
           }}
         >
