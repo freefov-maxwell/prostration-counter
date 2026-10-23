@@ -96,3 +96,49 @@ export async function exportAll(): Promise<string> {
     2,
   );
 }
+
+/** 解析备份文件（用户选的文件，不可信）：只取合法字段，丢弃 id 以免覆盖本机记录。 */
+export function parseBackup(json: string): { sessions: Session[]; progress?: ScriptureProgress } {
+  let data;
+  try {
+    data = JSON.parse(json);
+  } catch {
+    data = null;
+  }
+  if (!data || !Array.isArray(data.sessions)) throw new Error('这不是大礼拜计数导出的备份文件');
+  const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+  const sessions: Session[] = data.sessions
+    .filter((s: Session) => s && num(s.startedAt) && num(s.endedAt) && num(s.count) && num(s.durationSec))
+    .map((s: Session) => ({
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      count: s.count,
+      manualAdjust: num(s.manualAdjust) ? s.manualAdjust : 0,
+      durationSec: s.durationSec,
+      ...(num(s.target) ? { target: s.target } : {}),
+    }));
+  const p = Array.isArray(data.scriptureProgress) ? data.scriptureProgress[0] : null;
+  const progress =
+    p && num(p.charIndex) && num(p.updatedAt)
+      ? { id: 1, scriptureId: 'tao-te-ching', charIndex: Math.max(0, Math.floor(p.charIndex)), updatedAt: p.updatedAt }
+      : undefined;
+  return { sessions, progress };
+}
+
+/**
+ * 导入备份：与本机记录合并，开始时间相同视为同一条不重复计；
+ * 经书进度取较新的一份（本机尚未开始读则以备份为准）；设置保持本机不变。返回新增条数。
+ */
+export async function importAll(json: string): Promise<number> {
+  const { sessions, progress } = parseBackup(json);
+  return db.transaction('rw', db.sessions, db.scriptureProgress, async () => {
+    const seen = new Set((await db.sessions.toArray()).map((s) => s.startedAt));
+    const fresh = sessions.filter((s) => !seen.has(s.startedAt) && seen.add(s.startedAt));
+    await db.sessions.bulkAdd(fresh);
+    const cur = await db.scriptureProgress.get(1);
+    if (progress && (!cur || cur.charIndex === 0 || progress.updatedAt > cur.updatedAt)) {
+      await db.scriptureProgress.put(progress);
+    }
+    return fresh.length;
+  });
+}

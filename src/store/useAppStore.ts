@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import {
   db,
   DEFAULT_SETTINGS,
+  importAll,
   loadProgress,
   loadSettings,
   saveProgress,
@@ -72,6 +73,8 @@ interface AppState {
   deleteSession(id: number): Promise<void>;
   jumpChar(index: number): Promise<void>;
   resetProgress(): Promise<void>;
+  /** 导入备份 JSON，返回新增记录条数。 */
+  importBackup(json: string): Promise<number>;
 }
 
 export function sessionDurationSec(s: Pick<AppState, 'activeMs' | 'resumeMark' | 'sessionStatus'>): number {
@@ -245,5 +248,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   async resetProgress() {
     await saveProgress(0);
     set({ charIndex: 0 });
+  },
+
+  async importBackup(json) {
+    const added = await importAll(json);
+    await get().init();
+    if (get().charIndex >= scripture.totalChars) await get().jumpChar(get().charIndex);
+    return added;
   },
 }));

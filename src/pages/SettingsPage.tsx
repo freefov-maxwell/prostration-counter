@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { exportAll } from '../db/db';
 import { downloadJson } from '../platform/overlay';
@@ -17,8 +17,10 @@ function ScriptureContext({ index }: { index: number }) {
 }
 
 export function SettingsPage() {
-  const { settings, updateSettings, charIndex, jumpChar, resetProgress, navigate } = useAppStore();
+  const { settings, updateSettings, charIndex, jumpChar, resetProgress, navigate, importBackup, sessions } = useAppStore();
   const [jumpValue, setJumpValue] = useState('');
+  const [importMsg, setImportMsg] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const pct = ((charIndex / scripture.totalChars) * 100).toFixed(1);
   const chapter = scripture.chapterOf(Math.max(0, charIndex - 1));
@@ -27,6 +29,16 @@ export function SettingsPage() {
 
   const doExport = async () => {
     downloadJson(`dalibai-backup-${new Date().toISOString().slice(0, 10)}.json`, await exportAll());
+  };
+
+  const doImport = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const added = await importBackup(await file.text());
+      setImportMsg(added ? `导入成功：新增 ${added} 条礼拜记录。` : '导入完成：备份里的记录本机都已有，没有新增。');
+    } catch (e) {
+      setImportMsg(`导入失败：${e instanceof Error ? e.message : String(e)}`);
+    }
   };
 
   return (
@@ -126,10 +138,39 @@ export function SettingsPage() {
       </section>
 
       <section className="section">
-        <h3>数据</h3>
-        <button className="btn-secondary" onClick={() => void doExport()}>
-          导出数据（JSON 备份）
-        </button>
+        <h3>数据备份与恢复</h3>
+        <p className="hint">
+          你的 {sessions.length} 条礼拜记录和经书进度只保存在这台手机的浏览器里，没有云端。
+          换手机、清理浏览器数据或删除主屏幕图标之前，请先导出备份。
+        </p>
+        <ol className="hint">
+          <li>点「导出备份」，得到一个 dalibai-backup-日期.json 文件，把它存到网盘、发给自己（如微信文件传输助手）或电脑上。</li>
+          <li>在新手机上打开本应用，点「导入备份」，选择这个文件即可恢复。</li>
+        </ol>
+        <p className="hint">导入是合并，不会删除本机已有记录，重复导入同一份也不会重复计数；经书进度取较新的一份。</p>
+        <div className="btn-row">
+          <button className="btn-secondary" onClick={() => void doExport()}>
+            导出备份
+          </button>
+          <button className="btn-secondary" onClick={() => fileRef.current?.click()}>
+            导入备份
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".json,application/json"
+            hidden
+            onChange={(e) => {
+              void doImport(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+        </div>
+        {importMsg && (
+          <p className="hint" role="status">
+            {importMsg}
+          </p>
+        )}
       </section>
 
       <section className="section">

@@ -20,9 +20,36 @@ export function WeChatBanner() {
   );
 }
 
+/** 已从主屏幕打开或在微信内（无法添加，横幅已引导去浏览器）时返回 null。 */
+function installSteps(): string | null {
+  if (isStandalone() || isWeChat()) return null;
+  return isIOS()
+    ? '用 Safari 打开，点底部「分享」按钮 →「添加到主屏幕」'
+    : '点浏览器右上角或底部的菜单（⋮ 或 ≡）→「添加到主屏幕」或「安装应用」';
+}
+
 function InstallHint() {
-  if (!isIOS() || isStandalone()) return null;
-  return <p className="hint center">iOS 用户：可通过 Safari「分享 → 添加到主屏幕」安装为应用</p>;
+  const steps = installSteps();
+  if (!steps) return null;
+  return <p className="hint center">可添加到主屏幕，像 App 一样使用：{steps}</p>;
+}
+
+function InstallSection() {
+  const steps = installSteps();
+  if (!steps) return null;
+  return (
+    <section className="section">
+      <h3>添加到主屏幕，像 App 一样用</h3>
+      <p className="hint">
+        {steps}。之后从桌面图标打开：全屏显示、没有地址栏，模型下载过后断网也能用，和原生 App 体验一样，无需应用商店安装。
+      </p>
+      {isIOS() && (
+        <p className="hint">
+          注意：iPhone 上主屏幕图标与 Safari 里的数据互不相通。如果已在 Safari 中有礼拜记录，先在「设置 → 导出备份」，再从主屏幕图标打开后「导入备份」。
+        </p>
+      )}
+    </section>
+  );
 }
 
 const FEATURES = [
@@ -36,7 +63,7 @@ const FEATURES = [
 const TRUST = [
   ['视频不出手机', '识别全部在本机完成，不录制、不上传。'],
   ['首次约 16 MB', '第一次开始时下载识别模型，建议连 Wi-Fi；之后断网也能用。'],
-  ['无账号、无广告', '记录只存在本机，可在设置中导出备份。'],
+  ['无账号、无广告', '记录只存在本机。换手机时在设置中导出备份，新手机上导入即可恢复。'],
 ] as const;
 
 function Intro({ firstTime, onStart, onSkip }: { firstTime: boolean; onStart(): void; onSkip(): void }) {
@@ -79,7 +106,7 @@ function Intro({ firstTime, onStart, onSkip }: { firstTime: boolean; onStart(): 
         </div>
       </section>
 
-      <InstallHint />
+      <InstallSection />
 
       <div className="intro-cta">
         <button className="btn-primary btn-huge" onClick={onStart}>
