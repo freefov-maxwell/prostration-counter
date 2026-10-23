@@ -22,7 +22,6 @@ export interface ScriptureProgress {
 /** 单行表，id 固定为 1。 */
 export interface Settings {
   id: number;
-  soundOn: boolean;
   scriptureEnabled: boolean;
   defaultTarget?: number;
   /** 俯身识别提示音（低音提示），未设置视为开启。 */
@@ -39,7 +38,6 @@ export type PoseModel = 'mediapipe' | 'movenet';
 
 export const DEFAULT_SETTINGS: Settings = {
   id: 1,
-  soundOn: true,
   scriptureEnabled: false,
 };
 

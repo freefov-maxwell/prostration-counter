@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { initAudio } from '../platform/feedback';
+import { initAudio, playQing } from '../platform/feedback';
 
 /** 侧视示意：站立预备 → 跪下 → 趴下伸手，手指前方给手机留出距离。三帧循环。 */
 function PlacementGuide() {
@@ -125,14 +125,6 @@ export function PreparePage() {
           />
         </label>
         <label className="switch-row">
-          <span>提示音</span>
-          <input
-            type="checkbox"
-            checked={settings.soundOn}
-            onChange={(e) => void updateSettings({ soundOn: e.target.checked })}
-          />
-        </label>
-        <label className="switch-row">
           <span>俯身识别提示音（低音提示）</span>
           <input
             type="checkbox"
@@ -140,6 +132,23 @@ export function PreparePage() {
             onChange={(e) => void updateSettings({ descentCueOn: e.target.checked })}
           />
         </label>
+      </section>
+
+      <section className="section">
+        <h3>声音</h3>
+        <p className="hint">练习全程靠提示音和语音引导，开始前请试听确认。不想太响可调小音量，但不要调到静音。</p>
+        <button
+          className="btn-secondary"
+          onClick={() => {
+            initAudio();
+            playQing();
+          }}
+        >
+          试听提示音
+        </button>
+        <p className="hint">
+          听不到时：① 用音量键调大<b>媒体音量</b>（不是铃声音量）；② iPhone 拨开机身侧边的静音键；③ 关闭勿扰/专注模式；④ 检查是否连着蓝牙耳机或音箱；⑤ 在微信里打开时，退出重进页面再试。
+        </p>
       </section>
 
       <button className="btn-primary btn-huge" onClick={start}>

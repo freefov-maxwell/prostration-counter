@@ -112,14 +112,6 @@ export function SettingsPage() {
       <section className="section">
         <h3>反馈</h3>
         <label className="switch-row">
-          <span>提示音</span>
-          <input
-            type="checkbox"
-            checked={settings.soundOn}
-            onChange={(e) => void updateSettings({ soundOn: e.target.checked })}
-          />
-        </label>
-        <label className="switch-row">
           <span>俯身识别提示音（低音提示）</span>
           <input
             type="checkbox"

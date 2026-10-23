@@ -768,3 +768,12 @@ button {
   border-radius: 4px;
   transition: width 0.2s ease-out;
 }
+
+.sound-banner {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 12px);
+  left: 16px;
+  right: 16px;
+  z-index: 20;
+  border: none;
+}

@@ -6,7 +6,7 @@ import { analyzeStandingFrame, SignalExtractor } from '../engine/signals';
 import { initialMachineState, MachineEvent, MachineState, RepState, stepMachine } from '../engine/stateMachine';
 import { DEFAULT_THRESHOLDS } from '../engine/thresholds';
 import { Baseline, FrameSignals, KP, PoseFrame } from '../engine/types';
-import { playBowl, playGoal, playQing, playTick, playVoice, preloadVoices, VoiceKey } from '../platform/feedback';
+import { audioReady, initAudio, playBowl, playGoal, playQing, playTick, playVoice, preloadVoices, VoiceKey } from '../platform/feedback';
 import { downloadJson, drawPose } from '../platform/overlay';
 import { scripture } from '../scripture';
 
@@ -113,7 +113,7 @@ export function SessionPage() {
 
   const speak = (key: VoiceKey, t: number) => {
     voiceRef.current = { key, since: t, spoken: key, at: t };
-    if (useAppStore.getState().settings.soundOn) playVoice(key);
+    playVoice(key);
   };
 
   /** 站位提示：稳定后播一次，问题未解决则定期重复。 */
@@ -188,7 +188,7 @@ export function SessionPage() {
       if (remain !== r.lastSec) {
         r.lastSec = remain;
         setCountdown(remain);
-        if (useAppStore.getState().settings.soundOn) playTick();
+        playTick();
       }
       return;
     }
@@ -257,21 +257,18 @@ export function SessionPage() {
       for (const e of events) dbg.events.push({ ...e, t: Math.round(t) });
     }
 
-    const sound = s.settings.soundOn;
     for (const e of events) {
       if (e.type === 'armed') {
-        if (sound && s.settings.descentCueOn !== false) playBowl();
+        if (s.settings.descentCueOn !== false) playBowl();
       } else if (e.type === 'repCompleted') {
         s.onRepCompleted();
         setFlashKey((k) => k + 1);
         const after = useAppStore.getState();
-        if (sound) playQing();
+        playQing();
         if (after.target != null && after.sessionCount === after.target) {
           setGoalReached(true);
-          if (sound) {
-            playGoal();
-            setTimeout(() => speak('goal', performance.now()), 1200);
-          }
+          playGoal();
+          setTimeout(() => speak('goal', performance.now()), 1200);
         }
       } else if (e.type === 'repDiscarded') {
         speak('discarded', t);
@@ -327,6 +324,12 @@ export function SessionPage() {
       {debug && <pre ref={debugRef} className="debug-readout" />}
       <div className={`edge-glow${counting && isArmed(machineState) ? ' armed' : ''}`} />
       {flashKey > 0 && <div key={flashKey} className="edge-flash" />}
+      {/* 每秒的计时刷新会重新求值，被系统挂起后即显示 */}
+      {!audioReady() && sessionStatus !== 'interrupted' && (
+        <button className="wechat-banner sound-banner" onClick={initAudio}>
+          🔇 声音已暂停，点此恢复
+        </button>
+      )}
 
       {!counting ? (
         <div className="session-top">
@@ -463,7 +466,13 @@ export function SessionPage() {
       {sessionStatus === 'interrupted' && (
         <div className="overlay-mask">
           <p>会话已中断</p>
-          <button className="btn-primary" onClick={() => store.resumeFromInterrupt()}>
+          <button
+            className="btn-primary"
+            onClick={() => {
+              initAudio();
+              store.resumeFromInterrupt();
+            }}
+          >
             继续
           </button>
           <button className="btn-secondary" onClick={() => void store.endSession()}>
