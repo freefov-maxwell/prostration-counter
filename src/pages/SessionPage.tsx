@@ -320,6 +320,8 @@ export function SessionPage() {
   return (
     <div className="page camera-page session-page">
       <video ref={videoRef} className="camera-preview" autoPlay playsInline muted />
+      {/* 计数时压暗画面，让计数和经文更醒目，仍能大致看到自己 */}
+      {counting && <div className="camera-dim" />}
       {(!counting || debug) && <canvas ref={canvasRef} className="camera-preview pose-canvas" />}
       {debug && <pre ref={debugRef} className="debug-readout" />}
       <div className={`edge-glow${counting && isArmed(machineState) ? ' armed' : ''}`} />
@@ -424,14 +426,15 @@ export function SessionPage() {
             </div>
           )}
           <div className="duration">{fmtDuration(durationSec)}</div>
-          {win && (
-            <div className="scripture-line">
-              <span className="ctx">{win.before}</span>
-              <span className="current-char">{win.current}</span>
-              <span className="ctx">{win.after}</span>
-            </div>
-          )}
           {error && <div className="panel"><p>{error}</p></div>}
+        </div>
+      )}
+
+      {counting && win && (
+        <div className="scripture-stage">
+          <div className="ctx">{win.before}</div>
+          <div className="current-char">{win.current}</div>
+          <div className="ctx">{win.after}</div>
         </div>
       )}
 
