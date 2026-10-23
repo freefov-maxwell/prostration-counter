@@ -1,6 +1,9 @@
+import { WeChatBanner } from './HomePage';
+
 export function UnsupportedPage({ reasons }: { reasons: string[] }) {
   return (
     <div className="page">
+      <WeChatBanner />
       <header className="home-header">
         <h1>大礼拜计数</h1>
       </header>

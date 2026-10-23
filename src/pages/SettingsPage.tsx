@@ -157,7 +157,7 @@ export function SettingsPage() {
         <h3>关于</h3>
         <p className="hint">
           大礼拜计数 v0.1 · 纯本地运行：视频不出设备，数据仅存本机，无任何网络请求与埋点。
-          运动中建议插电使用。提示语音为 AI 合成。
+          礼拜时建议插电使用。提示语音为 AI 合成。
         </p>
       </section>
     </div>

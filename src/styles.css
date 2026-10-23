@@ -159,6 +159,88 @@ button {
   text-align: center;
 }
 
+/* —— 微信提示 / 首次介绍 —— */
+.wechat-banner {
+  background: var(--cinnabar);
+  color: var(--paper);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.intro .home-header {
+  margin-top: 16px;
+}
+
+.intro-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+
+.intro-tagline {
+  margin-top: 12px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.intro-demo {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.feature-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feature-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 14px;
+  border-left: 3px solid var(--cinnabar);
+}
+
+.feature-list span {
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.trust-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.trust-grid .stat-card {
+  text-align: left;
+  padding: 14px 16px;
+}
+
+.trust-grid .hint {
+  margin-top: 4px;
+}
+
+/* 长页面里主按钮始终可见 */
+.intro-cta {
+  position: sticky;
+  bottom: 0;
+  margin: 0 -20px calc(-24px - env(safe-area-inset-bottom));
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .warning {
   color: var(--cinnabar);
   font-size: 14px;

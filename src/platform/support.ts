@@ -5,6 +5,11 @@ export interface SupportResult {
   reasons: string[];
 }
 
+/** 微信内置浏览器：摄像头常不可用，需引导到系统浏览器打开。 */
+export function isWeChat(): boolean {
+  return /MicroMessenger/i.test(navigator.userAgent);
+}
+
 export function checkSupport(): SupportResult {
   const reasons: string[] = [];
   if (!navigator.mediaDevices?.getUserMedia) {

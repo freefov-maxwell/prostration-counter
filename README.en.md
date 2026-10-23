@@ -20,7 +20,7 @@ Runs in the browser · nothing to install · no sign-up · video never leaves yo
 
 <br/>
 
-<img src="docs/demo.svg" width="760" alt="Animation: a figure performs prostrations while the phone screen counts from 104 to 108 and advances through the Tao Te Ching" />
+<img src="public/demo.svg" width="760" alt="Animation: a figure performs prostrations while the phone screen counts from 104 to 108 and advances through the Tao Te Ching" />
 
 </div>
 
@@ -84,7 +84,7 @@ This app fixes that. Stand your phone up in front of you, and every time you ret
 ### A full session
 
 1. **Place your phone.** Stand it upright with the screen facing you, bottom on the floor and tilted slightly back (leaning it on a cup or a book is fine). Put it **about 10–20 cm beyond your fingertips** when you're lying flat with your arms stretched out.
-2. **Tap 开始运动 (Start), then 开始**, and allow camera access. To read along, switch on 显示《道德经》逐字 (*Show Tao Te Ching*) on the prepare page.
+2. **Tap 开始礼拜 (Start), then 开始**, and allow camera access. To read along, switch on 显示《道德经》逐字 (*Show Tao Te Ching*) on the prepare page.
 3. **Step back and stand still.** Your whole body should be in frame, standing straight with your arms relaxed at your sides. Voice prompts help you adjust, and counting starts after a **5-second countdown**.
 4. **Prostrate.** The 🔔 singing bowl means a bow has been detected. Stand back up and the chime means **+1**.
 5. **Finish.** Tap 结束 (End) to save the session. Your totals and streak update automatically.

@@ -31,6 +31,8 @@ export interface Settings {
   debugOverlay?: boolean;
   /** 姿态识别引擎，未设置视为 movenet。 */
   poseModel?: PoseModel;
+  /** 首次介绍页已看过（点了开始或跳过）。 */
+  introSeen?: boolean;
 }
 
 export type PoseModel = 'mediapipe' | 'movenet';

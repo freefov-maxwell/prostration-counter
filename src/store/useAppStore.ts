@@ -33,6 +33,8 @@ export interface SessionSummary {
 interface AppState {
   page: Page;
   supportReasons: string[];
+  /** 本地数据已读入；之前 settings/sessions 是默认值，不能据此判断是否新用户。 */
+  ready: boolean;
   settings: Settings;
   sessions: Session[];
   charIndex: number;
@@ -80,6 +82,7 @@ export function sessionDurationSec(s: Pick<AppState, 'activeMs' | 'resumeMark' |
 export const useAppStore = create<AppState>((set, get) => ({
   page: 'home',
   supportReasons: [],
+  ready: false,
   settings: { ...DEFAULT_SETTINGS },
   sessions: [],
   charIndex: 0,
@@ -100,7 +103,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       loadProgress(),
       db.sessions.orderBy('startedAt').reverse().toArray(),
     ]);
-    set({ settings, charIndex: progress.charIndex, sessions });
+    set({ settings, charIndex: progress.charIndex, sessions, ready: true });
   },
 
   navigate(page) {
