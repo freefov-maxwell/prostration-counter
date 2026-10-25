@@ -4,7 +4,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { GraphModel, loadGraphModel } from '@tensorflow/tfjs-converter';
-import { Keypoint, PoseFrame } from '../engine/types';
+import { Keypoint } from '../engine/types';
 import { assetsTotal, downloadWithProgress, LoadProgress } from './pose';
 
 const SIZE = 192;
@@ -97,14 +97,14 @@ export function loadMoveNet(onProgress?: (p: LoadProgress) => void): Promise<Gra
   return loading;
 }
 
-/** 与 PoseDetector 同契约：'skip' 表示本帧跳过，null 表示没人。 */
+/** 与 PoseDetector 同契约：'skip' 表示本帧跳过；单人模型，至多返回一个人。 */
 export class MoveNetDetector {
   private lastVideoTime = -1;
   private box: Box | null = null;
 
   constructor(private m: GraphModel) {}
 
-  detect(video: HTMLVideoElement): PoseFrame | 'skip' {
+  detect(video: HTMLVideoElement): Keypoint[][] | 'skip' {
     if (video.currentTime === this.lastVideoTime) return 'skip';
     if (video.readyState < 2) return 'skip';
     this.lastVideoTime = video.currentTime;
@@ -124,15 +124,15 @@ export class MoveNetDetector {
         score: out[i * 3 + 2],
       }));
       this.box = nextBox(kp, w, h);
-      if (kp.every((k) => k.score < MIN_SCORE)) return null;
+      if (kp.every((k) => k.score < MIN_SCORE)) return [];
       const frame: Keypoint[] = Array.from({ length: 33 }, () => ({ x: 0, y: 0, z: 0, visibility: 0 }));
       kp.forEach((k, i) => {
         frame[COCO_TO_BLAZE[i]] = { x: k.x, y: k.y, z: 0, visibility: Math.min(1, (k.score * 0.5) / SCORE_AT_VIS_MIN[i]) };
       });
-      return frame;
+      return [frame];
     } catch {
       this.box = null;
-      return null;
+      return [];
     }
   }
 }

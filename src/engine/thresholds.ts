@@ -80,6 +80,12 @@ export interface Thresholds {
   readyWindowMs: number;
   /** 头 / 脚距画面边缘的最小余量。 */
   inFrameMargin: number;
+
+  // —— 多人时锁定本人（MediaPipe 多人识别） ——
+  /** 侧向位置（两肩中点离画面中心几个肩宽，与远近无关）偏离锁定值超过此数 → 不是本人。 */
+  subjectMaxOffset: number;
+  /** 上次选中本人在此时长内：按帧间连续选人（离上一帧最近）；否则按侧向位置重新认人。 */
+  subjectTrackMs: number;
 }
 
 export const DEFAULT_THRESHOLDS: Thresholds = {
@@ -131,4 +137,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   readyGraceMs: 500,
   readyWindowMs: 1500,
   inFrameMargin: 0.05,
+
+  // 实测 7 段录制：本人拜的全程偏离 p99 ≤ 0.6；两人并肩至少错开约 1.4
+  subjectMaxOffset: 1.0,
+  subjectTrackMs: 500,
 };

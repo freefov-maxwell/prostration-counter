@@ -3,6 +3,8 @@
 import { describe, expect, it } from 'vitest';
 import { SignalExtractor } from './signals';
 import { initialMachineState, stepMachine } from './stateMachine';
+import { SubjectTracker } from './subject';
+import { Keypoint } from './types';
 
 const files = import.meta.glob<string>('../../data/*.json', { query: '?raw', import: 'default', eager: true });
 
@@ -16,25 +18,47 @@ const RECORDINGS: [string, number, string][] = [
   // T08-40-59-758Z / T08-42-11-849Z：叩头（跪拜不扑地）+ 归元瑜伽，叩头目前会被计数，暂不纳入
 ];
 
-/** fps：按 App 的推理限速降采样回放（录制时为 43–60fps，App 现限速 15fps）。 */
-function replay(raw: string, fps?: number): number {
+interface RecFrame {
+  t: number;
+  kp: number[] | null;
+  alt?: number[][];
+  st?: string;
+  sig?: unknown;
+}
+
+const unflat = (a: number[]): Keypoint[] =>
+  Array.from({ length: 33 }, (_, i) => ({ x: a[i * 4], y: a[i * 4 + 1], z: a[i * 4 + 2], visibility: a[i * 4 + 3] }));
+
+/**
+ * fps：按 App 的推理限速降采样回放（录制时为 43–60fps，App 现限速 15fps）。
+ * MediaPipe 录制与 App 一致，经 SubjectTracker 从全部候选（kp + alt）里挑人；edit 可改写候选（注入旁人）。
+ */
+function replay(raw: string, fps?: number, edit?: (poses: Keypoint[][], f: RecFrame) => Keypoint[][]): number {
   const d = JSON.parse(raw);
   const ex = new SignalExtractor(d.baseline0);
-  let frames = d.frames.filter((f: { sig?: unknown }) => f.sig); // 只回放计数阶段
+  const tracker = d.poseModel === 'mediapipe' ? new SubjectTracker() : null;
+  let frames: RecFrame[] = d.frames.filter((f: RecFrame) => f.sig); // 只回放计数阶段
   if (fps) {
     let last = -Infinity;
-    frames = frames.filter((f: { t: number }) => (f.t - last >= 1000 / fps - 8 ? ((last = f.t), true) : false));
+    frames = frames.filter((f) => (f.t - last >= 1000 / fps - 8 ? ((last = f.t), true) : false));
   }
   let m = initialMachineState(frames[0].t);
   for (const f of frames) {
-    const kp = f.kp
-      ? Array.from({ length: 33 }, (_, i) => ({ x: f.kp[i * 4], y: f.kp[i * 4 + 1], z: f.kp[i * 4 + 2], visibility: f.kp[i * 4 + 3] }))
-      : null;
+    let poses = [...(f.kp ? [f.kp] : []), ...(f.alt ?? [])].map(unflat);
+    if (edit) poses = edit(poses, f);
+    const kp = tracker ? tracker.pick(poses, f.t) : (poses[0] ?? null);
     const r = stepMachine(m, ex.update(kp, f.t));
     m = r.state;
     for (const e of r.events) {
-      if (e.type === 'settled') ex.rebase();
-      if (e.type === 'reanchor') ex.reanchor();
+      if (e.type === 'settled') {
+        ex.rebase();
+        tracker?.anchor();
+      }
+      if (e.type === 'reanchor') {
+        ex.reanchor();
+        tracker?.anchor();
+      }
+      if (e.type === 'paused') tracker?.release();
     }
   }
   return m.count;
@@ -49,4 +73,17 @@ describe('真实录制回放', () => {
       expect(replay(raw, 15)).toBe(reps);
     });
   }
+});
+
+describe('多人入镜（MediaPipe 录制注入旁人）', () => {
+  const raw = Object.entries(files).find(([path]) => path.includes('T05-38-59-296Z'))?.[1];
+  it.skipIf(!raw)('旁人始终站在右侧，本人趴下时只剩旁人 → 仍计 3', () => {
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    // 旁人：起始站姿整体右移 0.3（约 1.8 个肩宽）
+    const stand = unflat(d.frames.find((f: RecFrame) => f.sig && f.kp).kp).map((k) => ({ ...k, x: k.x + 0.3 }));
+    const edit = (poses: Keypoint[][], f: RecFrame) => (f.st === 'PRONE' ? [stand] : [...poses, stand]);
+    expect(replay(raw, undefined, edit)).toBe(3);
+    expect(replay(raw, 15, edit)).toBe(3);
+  });
 });

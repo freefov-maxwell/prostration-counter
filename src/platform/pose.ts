@@ -1,7 +1,7 @@
 // MediaPipe PoseLandmarker 适配层：设置里可切换的高精度引擎（默认引擎为 MoveNet，见 movenet.ts）。
 // v1 决策：推理跑主线程 + 背压丢帧（见 README），WASM 全部本地自托管。
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
-import { PoseFrame } from '../engine/types';
+import { Keypoint } from '../engine/types';
 
 let landmarker: PoseLandmarker | null = null;
 let loading: Promise<PoseLandmarker> | null = null;
@@ -94,7 +94,8 @@ export function loadPoseLandmarker(
       landmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: { modelAssetPath: modelUrl, delegate: 'GPU' },
         runningMode: 'VIDEO',
-        numPoses: 1,
+        // 本人 + 最多 2 个旁人，由 SubjectTracker 挑出本人；耗时随画面里实际人数增长
+        numPoses: 3,
       });
     } finally {
       URL.revokeObjectURL(modelUrl);
@@ -114,8 +115,8 @@ export class PoseDetector {
 
   constructor(private lm: PoseLandmarker) {}
 
-  /** 返回 null 表示本帧被跳过（忙或画面未更新）。 */
-  detect(video: HTMLVideoElement, nowMs: number): PoseFrame | null | 'skip' {
+  /** 返回画面中全部人的关键点（没人为 []）；'skip' 表示本帧被跳过（忙或画面未更新）。 */
+  detect(video: HTMLVideoElement, nowMs: number): Keypoint[][] | 'skip' {
     if (this.busy) return 'skip';
     if (video.currentTime === this.lastVideoTime) return 'skip';
     if (video.readyState < 2) return 'skip';
@@ -123,16 +124,16 @@ export class PoseDetector {
     this.busy = true;
     try {
       const result = this.lm.detectForVideo(video, nowMs);
-      const lms = result.landmarks?.[0];
-      if (!lms) return null;
-      return lms.map((p) => ({
-        x: p.x,
-        y: p.y,
-        z: p.z,
-        visibility: p.visibility ?? 0,
-      }));
+      return (result.landmarks ?? []).map((lms) =>
+        lms.map((p) => ({
+          x: p.x,
+          y: p.y,
+          z: p.z,
+          visibility: p.visibility ?? 0,
+        })),
+      );
     } catch {
-      return null;
+      return [];
     } finally {
       this.busy = false;
     }

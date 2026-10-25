@@ -5,7 +5,8 @@ import { LoadProgress } from '../platform/pose';
 import { analyzeStandingFrame, SignalExtractor } from '../engine/signals';
 import { initialMachineState, MachineEvent, MachineState, RepState, stepMachine } from '../engine/stateMachine';
 import { DEFAULT_THRESHOLDS } from '../engine/thresholds';
-import { Baseline, FrameSignals, KP, PoseFrame } from '../engine/types';
+import { SubjectTracker } from '../engine/subject';
+import { Baseline, FrameSignals, KP, Keypoint, PoseFrame } from '../engine/types';
 import { audioReady, initAudio, playBowl, playGoal, playQing, playTick, playVoice, preloadVoices, VoiceKey } from '../platform/feedback';
 import { downloadJson, drawPose } from '../platform/overlay';
 import { chapterName, scripture } from '../scripture';
@@ -50,6 +51,8 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 interface DebugFrame {
   t: number;
   kp: number[] | null;
+  /** 画面中其余的人（MediaPipe 多人识别时），格式同 kp。 */
+  alt?: number[][];
   /** 推理耗时 ms。 */
   ms?: number;
   st?: RepState;
@@ -81,6 +84,8 @@ export function SessionPage() {
   const machineRef = useRef<MachineState>(initialMachineState());
   const debugRef2 = useRef({ frames: [] as DebugFrame[], events: [] as (MachineEvent & { t: number })[], baseline0: null as Baseline | null });
   const voiceRef = useRef({ key: null as VoiceKey | null, since: 0, spoken: null as VoiceKey | null, at: 0 });
+  // 只有 MediaPipe 能同时识别多人，从中挑出本人；MoveNet 单人模型直接用唯一结果
+  const [tracker] = useState(() => ((store.settings.poseModel ?? 'movenet') === 'mediapipe' ? new SubjectTracker() : null));
 
   useEffect(() => {
     preloadVoices(['enter', 'headOut', 'feetOut', 'tooFar', 'pose', 'hold', 'ready', 'discarded', 'paused', 'resumed', 'goal']);
@@ -212,16 +217,20 @@ export function SessionPage() {
     speak('ready', t);
   };
 
-  const onFrame = (frame: PoseFrame, t: number, inferMs: number) => {
+  const onFrame = (poses: Keypoint[][], t: number, inferMs: number) => {
     const s = useAppStore.getState();
     // autoPaused 时仍要跑状态机以检测人回来（resumed 事件）；interrupted 时完全停止
     if (s.sessionStatus === 'interrupted') return;
+    const frame: PoseFrame = tracker ? tracker.pick(poses, t) : (poses[0] ?? null);
     const dbg = s.settings.debugOverlay ? debugRef2.current : null;
     if (dbg) {
+      const flat = (f: Keypoint[]) => f.flatMap((k) => [r3(k.x), r3(k.y), r2(k.z), r2(k.visibility)]);
+      const alt = poses.filter((p) => p !== frame).map(flat);
       dbg.frames.push({
         t: Math.round(t),
         ms: Math.round(inferMs),
-        kp: frame ? frame.flatMap((k) => [r3(k.x), r3(k.y), r2(k.z), r2(k.visibility)]) : null,
+        kp: frame ? flat(frame) : null,
+        ...(alt.length ? { alt } : {}),
       });
       const cut = dbg.frames.findIndex((f) => t - f.t <= DEBUG_WINDOW_MS);
       if (cut > 0) dbg.frames.splice(0, cut);
@@ -274,6 +283,7 @@ export function SessionPage() {
       } else if (e.type === 'repDiscarded') {
         speak('discarded', t);
       } else if (e.type === 'paused') {
+        tracker?.release();
         s.autoPause();
         // 同一帧已播"本次未计入"时不再覆盖
         if (!events.some((x) => x.type === 'repDiscarded')) speak('paused', t);
@@ -282,8 +292,10 @@ export function SessionPage() {
         speak('resumed', t);
       } else if (e.type === 'settled') {
         extractorRef.current.rebase();
+        tracker?.anchor();
       } else if (e.type === 'reanchor') {
         extractorRef.current.reanchor();
+        tracker?.anchor();
       } else if (e.type === 'stateChanged') {
         s.setMachineState(e.to);
       }
@@ -298,12 +310,12 @@ export function SessionPage() {
     downloadJson(
       `dalibai-session-${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
       JSON.stringify({
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
         userAgent: navigator.userAgent,
         video: { w: videoRef.current?.videoWidth, h: videoRef.current?.videoHeight },
         poseModel,
-        kpFormat: 'BlazePose 33 点，每点 [x, y, z, visibility]，x/y 为帧宽高归一化（movenet 只有 17 点，其余 visibility 为 0）',
+        kpFormat: 'BlazePose 33 点，每点 [x, y, z, visibility]，x/y 为帧宽高归一化（movenet 只有 17 点，其余 visibility 为 0）；alt 为画面中其余的人',
         thresholds: DEFAULT_THRESHOLDS,
         baseline0: d.baseline0,
         baseline: extractorRef.current?.getBaseline() ?? null,
