@@ -5,7 +5,7 @@ import raw from './tao-te-ching.json';
 export interface RawScripture {
   id: string;
   title: string;
-  chapters: { n: number; text: string }[];
+  chapters: { n: number; title?: string; text: string }[];
 }
 
 /** 显示用 token：汉字带全文字序 i，标点 i = -1。 */
@@ -72,12 +72,13 @@ export function preprocess(rawData: RawScripture): Scripture {
 }
 
 const DIGITS = '零一二三四五六七八九';
-/** 章名：1 → 第一章，21 → 第二十一章（1–99）。 */
+/** 章名：1 → 第一章 体道，21 → 第二十一章 虚心（1–99；标题取自校对版）。 */
 export function chapterName(n: number): string {
   const t = Math.floor(n / 10);
   const u = n % 10;
   const tens = t === 0 ? '' : (t === 1 ? '' : DIGITS[t]) + '十';
-  return `第${tens}${u || !tens ? DIGITS[u] : ''}章`;
+  const title = (raw as RawScripture).chapters[n - 1]?.title;
+  return `第${tens}${u || !tens ? DIGITS[u] : ''}章${title ? ` ${title}` : ''}`;
 }
 
 export const scripture: Scripture = preprocess(raw as RawScripture);

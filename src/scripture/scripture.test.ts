@@ -5,9 +5,9 @@ import raw from './tao-te-ching.json';
 const han = (s: string) => [...s].filter((c) => /\p{Script=Han}/u.test(c));
 
 describe('《道德经》汉字预处理', () => {
-  it('81 章、5277 字（只计汉字，标点不入字序）', () => {
+  it('81 章、5327 字（只计汉字，标点不入字序）', () => {
     expect(scripture.totalChapters).toBe(81);
-    expect(scripture.totalChars).toBe(5277);
+    expect(scripture.totalChars).toBe(5327);
     expect(scripture.chars.every((c) => /\p{Script=Han}/u.test(c))).toBe(true);
   });
 
@@ -19,7 +19,7 @@ describe('《道德经》汉字预处理', () => {
       expect(scripture.chapterOffsets[i]).toBe(acc);
       acc += han(ch.text).length;
     });
-    expect(acc).toBe(5277);
+    expect(acc).toBe(5327);
   });
 
   it('chapterOf：首字属第 1 章，末字属第 81 章', () => {
@@ -30,12 +30,12 @@ describe('《道德经》汉字预处理', () => {
 
   it('标点 token 不计数，章 token 中汉字字序连续', () => {
     const all = scripture.chapterTokens.flat().filter((t) => t.i >= 0);
-    expect(all.map((t) => t.i)).toEqual([...Array(5277).keys()]);
+    expect(all.map((t) => t.i)).toEqual([...Array(5327).keys()]);
   });
 
   it('chapterName', () => {
     expect([1, 10, 11, 20, 21, 81].map(chapterName)).toEqual([
-      '第一章', '第十章', '第十一章', '第二十章', '第二十一章', '第八十一章',
+      '第一章 体道', '第十章 能为', '第十一章 无用', '第二十章 异俗', '第二十一章 虚心', '第八十一章 显质',
     ]);
   });
 
