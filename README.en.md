@@ -51,7 +51,7 @@ This app fixes that. Stand your phone up in front of you, and every time you ret
 | 📊 **Stats and streaks** | Today's count, day streak, total count and time, 7- and 30-day charts, and a log of every session |
 | 📜 **One character per repetition (optional)** | Off by default. Turn it on and the full *Tao Te Ching* (5,277 characters) advances one character with each repetition, with progress kept across days |
 | 🔒 **Private by design** | Pose detection runs entirely on your phone. **No video is uploaded or recorded**, and your data stays on your device. No account, no ads |
-| 📶 **Works offline** | The first visit downloads a ~16 MB detection model. After that it works without a connection, and you can add it to your home screen like an app |
+| 📶 **Works offline** | The first visit downloads a ~4 MB detection model. After that it works without a connection, and you can add it to your home screen like an app |
 
 ## 📱 Screenshots
 

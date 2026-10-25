@@ -13,6 +13,7 @@ const store = vi.hoisted(() => ({
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   useState: (initial: unknown) => [initial, vi.fn()],
+  useEffect: vi.fn(),
 }));
 vi.mock('../store/useAppStore', () => ({
   useAppStore: () => store,

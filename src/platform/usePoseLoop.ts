@@ -39,6 +39,8 @@ export function usePoseLoop(
     let cancelled = false;
     let raf = 0;
     let stream: MediaStream | null = null;
+    // 卸载时 React 先把 ref 置空再跑清理函数，清理里读 videoRef.current 恒为 null，须在此留住元素
+    const videoEl = videoRef.current;
 
     (async () => {
       try {
@@ -47,6 +49,8 @@ export function usePoseLoop(
           (async () => {
             if (!videoRef.current) throw new Error('no video element');
             stream = await startCamera(videoRef.current);
+            // 卸载（或 StrictMode 双调用）发生在 getUserMedia 返回前时，清理函数拿到的是 null，须在此补关
+            if (cancelled) stopCamera(stream);
           })(),
         ]);
         if (cancelled) return;
@@ -68,6 +72,7 @@ export function usePoseLoop(
         };
         raf = requestAnimationFrame(loop);
       } catch (err) {
+        stopCamera(stream);
         if (!cancelled) {
           setStage('error');
           optsRef.current.onError(cameraErrorMessage(err));
@@ -78,7 +83,7 @@ export function usePoseLoop(
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
-      stopCamera(stream, videoRef.current);
+      stopCamera(stream, videoEl);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryKey]);

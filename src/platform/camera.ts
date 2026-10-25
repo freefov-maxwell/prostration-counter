@@ -13,7 +13,10 @@ export async function startCamera(video: HTMLVideoElement): Promise<MediaStream>
 
 export function stopCamera(stream: MediaStream | null, video?: HTMLVideoElement | null) {
   stream?.getTracks().forEach((t) => t.stop());
-  if (video) video.srcObject = null;
+  if (video) {
+    video.pause();
+    video.srcObject = null;
+  }
 }
 
 export function cameraErrorMessage(err: unknown): string {

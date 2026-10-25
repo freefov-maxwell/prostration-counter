@@ -1191,6 +1191,29 @@ button {
   transition: width 0.2s ease-out;
 }
 
+/* 总量未知（如 App 更新后识别引擎代码重新下载，无法计字节）：来回滑动，不冒充进度 */
+.progress-fill.indeterminate {
+  width: 30% !important;
+  animation: progress-slide 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes progress-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(233%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill.indeterminate {
+    animation: none;
+    width: 100% !important;
+    opacity: 0.4;
+  }
+}
+
 .sound-banner {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 12px);

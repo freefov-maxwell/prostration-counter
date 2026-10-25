@@ -217,7 +217,7 @@ export function SettingsPage() {
             onChange={(e) => void updateSettings({ poseModel: e.target.checked ? 'mediapipe' : 'movenet' })}
           />
         </label>
-        <p className="hint">默认的轻量模型计数不准，或运动时画面中常有他人走动，建议开启。可同时识别多人并锁定本人，识别更稳，但首次使用另需下载约 17 MB，手机负担更重，需浏览器支持 WebGL2。</p>
+        <p className="hint">默认的轻量模型计数不准，或运动时画面中常有他人走动，建议开启。可同时识别多人并锁定本人，识别更稳，但首次使用另需下载约 8 MB，手机负担更重，需浏览器支持 WebGL2。</p>
       </section>
 
       <section className="section">

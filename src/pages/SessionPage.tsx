@@ -376,10 +376,10 @@ export function SessionPage() {
           )}
           {stage === 'loading' && !error && (
             <div className="panel">
-              <p className="guidance">首次使用需下载识别资源（约 {poseModel === 'mediapipe' ? 17 : 6} MB），之后离线可用</p>
+              <p className="guidance">正在加载识别资源（首次约 {poseModel === 'mediapipe' ? 8 : 4} MB，之后离线可用）</p>
               <div className="progress">
                 <div
-                  className="progress-fill"
+                  className={progress && progress.total > 0 ? 'progress-fill' : 'progress-fill indeterminate'}
                   style={{
                     width:
                       progress && progress.total > 0
@@ -391,7 +391,7 @@ export function SessionPage() {
               <p className="hint">
                 {progress
                   ? `${(progress.loaded / 1048576).toFixed(1)}${progress.total > 0 ? ` / ${(progress.total / 1048576).toFixed(1)}` : ''} MB`
-                  : '正在准备…'}
+                  : '正在加载识别引擎…'}
               </p>
             </div>
           )}

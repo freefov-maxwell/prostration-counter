@@ -1,8 +1,26 @@
 {
-  "wasm/vision_wasm_internal.js": 322044,
-  "wasm/vision_wasm_internal.wasm": 11153617,
-  "models/pose_landmarker_lite.task": 5777746,
-  "models/movenet/model.json": 168013,
-  "models/movenet/group1-shard1of2.bin": 4194304,
-  "models/movenet/group1-shard2of2.bin": 455912
+  "wasm/vision_wasm_internal.js": {
+    "raw": 322044,
+    "gz": 77830
+  },
+  "wasm/vision_wasm_internal.wasm": {
+    "raw": 11153617,
+    "gz": 3295165
+  },
+  "models/pose_landmarker_lite.task": {
+    "raw": 5777746,
+    "gz": 4971036
+  },
+  "models/movenet/model.json": {
+    "raw": 168013,
+    "gz": 7375
+  },
+  "models/movenet/group1-shard1of2.bin": {
+    "raw": 4194304,
+    "gz": 3891583
+  },
+  "models/movenet/group1-shard2of2.bin": {
+    "raw": 455912,
+    "gz": 421888
+  }
 }

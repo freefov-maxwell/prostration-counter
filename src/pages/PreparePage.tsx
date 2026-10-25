@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { initAudio, playQing } from '../platform/feedback';
 
@@ -50,6 +50,10 @@ export function PreparePage() {
     settings.defaultTarget === 36 ? '36' : settings.defaultTarget === 108 ? '108' : settings.defaultTarget ? 'custom' : 'none',
   );
   const [customTarget, setCustomTarget] = useState(String(settings.defaultTarget ?? ''));
+  // 趁用户看准备页时预取 TF.js 代码包（App 每次更新它的文件名都会变，需重新下载），运动页就不用干等
+  useEffect(() => {
+    if ((settings.poseModel ?? 'movenet') === 'movenet') void import('../platform/movenet').catch(() => {});
+  }, [settings.poseModel]);
 
   const resolveTarget = (): number | null => {
     if (targetChoice === '36') return 36;

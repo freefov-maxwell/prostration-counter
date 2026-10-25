@@ -7,9 +7,9 @@ let landmarker: PoseLandmarker | null = null;
 let loading: Promise<PoseLandmarker> | null = null;
 
 export interface LoadProgress {
-  /** 全部资源累计已下载字节（解压后口径） */
+  /** 全部资源累计已下载字节（gzip 压缩后口径，与界面提示的下载大小一致） */
   loaded: number;
-  /** 全部资源总字节（0 表示大小未知，进度条走不定态） */
+  /** 全部资源压缩后总字节（0 表示大小未知，进度条走不定态） */
   total: number;
 }
 
@@ -45,23 +45,48 @@ export async function downloadWithProgress(
   return out;
 }
 
-/** 按 pose-assets.json 汇总若干资源的解压后总字节；清单不可用时返回 0（进度条走不定态）。 */
-export async function assetsTotal(files: string[]): Promise<number> {
+type AssetSizes = Record<string, { raw: number; gz: number }>;
+
+async function assetSizes(): Promise<AssetSizes> {
   try {
     const resp = await fetch(`${import.meta.env.BASE_URL}pose-assets.json`);
-    if (!resp.ok) return 0;
-    const sizes: Record<string, number> = await resp.json();
-    return files.reduce((sum, f) => sum + (sizes[f] ?? 0), 0);
+    return resp.ok ? await resp.json() : {};
   } catch {
-    return 0;
+    return {};
   }
 }
 
 /**
+ * 并行下载若干资源，进度合并为一条总进度。
+ * fetch 流读到的是解压后字节，按 pose-assets.json 里各文件的压缩率折算成压缩后口径；
+ * 清单缺任一文件则总量记 0（进度条走不定态）。
+ */
+export async function downloadAssets(
+  files: string[],
+  onProgress?: (p: LoadProgress) => void,
+): Promise<Uint8Array[]> {
+  const sizes = await assetSizes();
+  const base = import.meta.env.BASE_URL;
+  // 校验 gz 字段：旧格式清单（值为数字）可能仍在缓存里
+  const known = files.every((f) => sizes[f]?.gz > 0 && sizes[f]?.raw > 0);
+  const ratio = files.map((f) => (known ? sizes[f].gz / sizes[f].raw : 1));
+  const total = known ? files.reduce((sum, f) => sum + sizes[f].gz, 0) : 0;
+  const currents = files.map(() => 0);
+  return Promise.all(
+    files.map((f, i) =>
+      downloadWithProgress(`${base}${f}`, (loaded) => {
+        currents[i] = loaded * ratio[i];
+        onProgress?.({ loaded: currents.reduce((a, b) => a + b, 0), total });
+      }),
+    ),
+  );
+}
+
+/**
  * 模型懒加载：首次进入运动页才加载，之后走 Service Worker 运行时缓存（CacheFirst）离线可用。
- * 引擎（JS + WASM）与姿态模型并行下载，进度合并为一条总进度；
- * 总量以 public/pose-assets.json（构建期生成的解压后大小清单）为准——服务器开 gzip/brotli 时
- * Content-Length 是压缩后大小，与流式读到的解压后字节不一致，不能作为进度口径。
+ * 引擎（JS + WASM）与姿态模型并行下载（downloadAssets），进度合并为一条总进度；
+ * 总量以 public/pose-assets.json（构建期生成的大小清单）为准——服务器开 gzip/brotli 时
+ * Content-Length 是压缩后大小，而流式读到的是解压后字节，不能直接作为进度口径。
  * 预热下载后 FilesetResolver 命中缓存；模型字节转 Blob URL 直接装载，不二次请求。
  */
 export function loadPoseLandmarker(
@@ -76,18 +101,7 @@ export function loadPoseLandmarker(
     'models/pose_landmarker_lite.task',
   ];
   loading = (async () => {
-    const total = await assetsTotal(files);
-    const currents = files.map(() => 0);
-    const report = () =>
-      onProgress?.({ loaded: currents.reduce((a, b) => a + b, 0), total });
-    const [, , modelBytes] = await Promise.all(
-      files.map((f, i) =>
-        downloadWithProgress(`${base}${f}`, (loaded) => {
-          currents[i] = loaded;
-          report();
-        }),
-      ),
-    );
+    const [, , modelBytes] = await downloadAssets(files, onProgress);
     const vision = await FilesetResolver.forVisionTasks(`${base}wasm`);
     const modelUrl = URL.createObjectURL(new Blob([modelBytes as BlobPart]));
     try {

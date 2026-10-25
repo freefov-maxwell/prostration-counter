@@ -1,9 +1,9 @@
 // 把 @mediapipe/tasks-vision 的 WASM 运行时复制到 public/wasm/，
 // 使 FilesetResolver 完全本地自托管，不依赖 CDN。
-// 同时生成 public/pose-assets.json 记录各资源的解压后字节数：
-// 服务器启用 gzip/brotli 时 Content-Length 是压缩后大小，而 fetch 流读到的是
-// 解压后字节，两者不一致会导致进度条失真，故以此清单作为进度总量的口径。
-import { cpSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+// 同时生成 public/pose-assets.json 记录各资源的原始字节（raw）与 gzip 后字节（gz）：
+// fetch 流读到的是解压后字节，进度按 gz/raw 折算成压缩后口径，与界面提示的下载大小一致。
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,7 +32,8 @@ const sizes = {};
 for (const f of files) {
   const p = join(root, 'public', f);
   if (existsSync(p)) {
-    sizes[f] = statSync(p).size;
+    const buf = readFileSync(p);
+    sizes[f] = { raw: buf.length, gz: gzipSync(buf, { level: 9 }).length };
   } else {
     console.warn('[copy-mediapipe-assets] missing asset, excluded from manifest:', f);
   }
