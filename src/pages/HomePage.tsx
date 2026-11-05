@@ -24,7 +24,7 @@ export function WeChatBanner() {
 function installSteps(): string | null {
   if (isStandalone() || isWeChat()) return null;
   return isIOS()
-    ? '用 Safari 打开，点底部「分享」按钮 →「添加到主屏幕」'
+    ? '用 Safari 打开，点底部「分享」按钮（新版 iOS 先点「···」）→「添加到主屏幕」'
     : '点浏览器右上角或底部的菜单（⋮ 或 ≡）→「添加到主屏幕」或「安装应用」';
 }
 
@@ -34,20 +34,33 @@ function InstallHint() {
   return <p className="hint center">可添加到主屏幕，像 App 一样使用：{steps}</p>;
 }
 
+const INSTALL_STEPS = [
+  ['在微信里打开的', '先点右上角「···」→「在浏览器中打开」，再按下面对应机型操作。微信内无法添加到桌面。'],
+  ['iPhone / iPad', '用 Safari 打开本页，点底部「分享」按钮（方框带向上箭头；新版 iOS 先点「···」再点「分享」）→「添加到主屏幕」→「添加」。'],
+  ['安卓 · Chrome / Edge', '点右上角「⋮」（Edge 在底部「≡」）→「添加到主屏幕」或「安装应用」→「安装」。'],
+  ['华为 / 小米 / OPPO / vivo 自带浏览器', '点底部或右上角菜单（≡ 或 ⋮）→「添加到桌面」或「添加快捷方式」。若提示需要权限，在系统设置中允许浏览器「创建桌面快捷方式」。'],
+] as const;
+
+/** 介绍页始终展示全部机型，方便用户转告他人；仅在已从桌面图标打开时隐藏。 */
 function InstallSection() {
-  const steps = installSteps();
-  if (!steps) return null;
+  if (isStandalone()) return null;
   return (
     <section className="section">
-      <h3>添加到主屏幕，像 App 一样用</h3>
+      <h3>可以安装到手机桌面</h3>
       <p className="hint">
-        {steps}。之后从桌面图标打开：全屏显示、没有地址栏，模型下载过后断网也能用，和原生 App 体验一样，无需应用商店安装。
+        从桌面图标打开后：全屏显示、没有地址栏，模型下载过后断网也能用，和 App 体验一样，无需应用商店安装。
       </p>
-      {isIOS() && (
-        <p className="hint">
-          注意：iPhone 上主屏幕图标与 Safari 里的数据互不相通。如果已在 Safari 中有练习记录，先在「设置 → 导出备份」，再从主屏幕图标打开后「导入备份」。
-        </p>
-      )}
+      <ul className="feature-list">
+        {INSTALL_STEPS.map(([title, desc]) => (
+          <li key={title}>
+            <b>{title}</b>
+            <span>{desc}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="hint">
+        注意：iPhone 上桌面图标与 Safari 里的数据互不相通。如果已在 Safari 中有练习记录，先在「设置 → 导出备份」，再从桌面图标打开后「导入备份」。
+      </p>
     </section>
   );
 }
