@@ -18,6 +18,8 @@ interface Options {
   model?: PoseModel;
 }
 
+class LoadError extends Error {}
+
 async function loadDetector(model: PoseModel | undefined, onProgress?: (p: LoadProgress) => void) {
   if (model === 'movenet') {
     const { loadMoveNet, MoveNetDetector } = await import('./movenet');
@@ -45,7 +47,10 @@ export function usePoseLoop(
     (async () => {
       try {
         const [detector] = await Promise.all([
-          loadDetector(optsRef.current.model, optsRef.current.onProgress),
+          // 模型失败不能落到 cameraErrorMessage，否则弱网下载失败会被报成"摄像头启动失败"
+          loadDetector(optsRef.current.model, optsRef.current.onProgress).catch(() => {
+            throw new LoadError();
+          }),
           (async () => {
             if (!videoRef.current) throw new Error('no video element');
             stream = await startCamera(videoRef.current);
@@ -75,7 +80,9 @@ export function usePoseLoop(
         stopCamera(stream);
         if (!cancelled) {
           setStage('error');
-          optsRef.current.onError(cameraErrorMessage(err));
+          optsRef.current.onError(
+            err instanceof LoadError ? '识别资源加载失败，请检查网络后重试' : cameraErrorMessage(err),
+          );
         }
       }
     })();

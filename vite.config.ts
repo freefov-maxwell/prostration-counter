@@ -4,6 +4,21 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // Cloudflare 使用根路径；GitHub Pages 在构建命令中通过 --base 指定子路径。
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        // TF.js 单独成包：不引用主包，文件名只随 TF.js 版本变；否则主包哈希一变，约 1.2MB 的
+        // movenet 分包文件名跟着变，每次发版用户都要重下。名字须以 movenet- 开头，命中 SW 运行时缓存规则
+        // CommonJS 辅助函数主包也用，单独拆出，否则会被并进 TF.js 包，导致首屏静态引用它
+        manualChunks: (id) =>
+          id.includes('node_modules/@tensorflow/')
+            ? 'movenet-tfjs'
+            : id.includes('commonjsHelpers')
+              ? 'cjs-helpers'
+              : undefined,
+      },
+    },
+  },
   server: {
     // 允许局域网访问（手机真机调试）
     host: true,

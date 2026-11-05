@@ -13,29 +13,65 @@ export interface LoadProgress {
   total: number;
 }
 
-/** 流式下载并逐块回报进度，返回完整字节。 */
+/** 连续这么久收不到数据即判定连接停滞（弱网下 TCP 半死连接浏览器可能几分钟都不报错）。 */
+const STALL_MS = 15000;
+const MAX_TRIES = 3;
+
+/** 流式下载并逐块回报进度，返回完整字节；停滞或网络错误时从头重下，最多 MAX_TRIES 次。 */
 export async function downloadWithProgress(
   url: string,
   onBytes: (loaded: number, total: number) => void,
 ): Promise<Uint8Array> {
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`下载失败（${resp.status}）：${url}`);
-  const total = Number(resp.headers.get('Content-Length') ?? 0);
-  if (!resp.body) {
-    const buf = new Uint8Array(await resp.arrayBuffer());
-    onBytes(buf.byteLength, total || buf.byteLength);
-    return buf;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await downloadOnce(url, onBytes);
+    } catch (err) {
+      if (attempt >= MAX_TRIES || err instanceof HttpError) throw err;
+      onBytes(0, 0);
+    }
   }
-  const reader = resp.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let loaded = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    loaded += value.byteLength;
-    onBytes(loaded, total);
+}
+
+class HttpError extends Error {}
+
+async function downloadOnce(
+  url: string,
+  onBytes: (loaded: number, total: number) => void,
+): Promise<Uint8Array> {
+  const ctrl = new AbortController();
+  let timer = 0;
+  const arm = () => {
+    clearTimeout(timer);
+    timer = window.setTimeout(() => ctrl.abort(), STALL_MS);
+  };
+  arm();
+  try {
+    const resp = await fetch(url, { signal: ctrl.signal });
+    if (!resp.ok) throw new HttpError(`下载失败（${resp.status}）：${url}`);
+    const total = Number(resp.headers.get('Content-Length') ?? 0);
+    if (!resp.body) {
+      const buf = new Uint8Array(await resp.arrayBuffer());
+      onBytes(buf.byteLength, total || buf.byteLength);
+      return buf;
+    }
+    const reader = resp.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let loaded = 0;
+    for (;;) {
+      arm();
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      loaded += value.byteLength;
+      onBytes(loaded, total);
+    }
+    return concat(chunks, loaded);
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+function concat(chunks: Uint8Array[], loaded: number): Uint8Array {
   const out = new Uint8Array(loaded);
   let offset = 0;
   for (const c of chunks) {
