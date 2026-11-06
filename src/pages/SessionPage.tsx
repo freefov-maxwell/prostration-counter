@@ -30,6 +30,8 @@ const VOICE_SETTLE_MS = 800;
 const VOICE_REPEAT_MS = 8000;
 /** 调试导出保留最近这么久的逐帧数据（含站位阶段）。 */
 const DEBUG_WINDOW_MS = 5 * 60 * 1000;
+/** 加载超过此时长仍未完成 → 提示重新加载（从缓存读取正常 1–2s；挂住的加载不会自己报错）。 */
+const LOAD_SLOW_MS = 20000;
 const RING_C = 2 * Math.PI * 92;
 
 function fmtDuration(sec: number): string {
@@ -304,6 +306,22 @@ export function SessionPage() {
 
   const poseModel = store.settings.poseModel ?? 'movenet';
   const stage = usePoseLoop(videoRef, { onFrame, onError: setError, onProgress: setProgress, model: poseModel }, retryKey);
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    setSlow(false);
+    if (stage !== 'loading') return;
+    const id = setTimeout(() => setSlow(true), LOAD_SLOW_MS);
+    return () => clearTimeout(id);
+  }, [stage, retryKey]);
+  /** 卡在哪一步：便于下次遇到时定位。 */
+  const stuckAt = () => {
+    const model = !progress
+      ? '识别引擎未就绪'
+      : progress.total > 0 && progress.loaded < progress.total * 0.99
+        ? '模型读取停滞'
+        : '模型初始化中';
+    return videoRef.current?.srcObject ? model : `${model}、摄像头未就绪`;
+  };
 
   const exportFrames = () => {
     const d = debugRef2.current;
@@ -393,6 +411,15 @@ export function SessionPage() {
                   ? `${(progress.loaded / 1048576).toFixed(1)}${progress.total > 0 ? ` / ${(progress.total / 1048576).toFixed(1)}` : ''} MB`
                   : '正在加载识别引擎…'}
               </p>
+              {slow && (
+                <>
+                  <p className="hint">加载超过 20 秒仍未完成（{stuckAt()}），可重新加载页面再试</p>
+                  {/* 整页刷新：清掉卡住的加载状态（模块级缓存的加载 Promise、挂住的请求），比「重试」可靠 */}
+                  <button className="btn-secondary" onClick={() => location.reload()}>
+                    重新加载
+                  </button>
+                </>
+              )}
             </div>
           )}
           {stage === 'ready' && !error && (

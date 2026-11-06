@@ -122,6 +122,8 @@ export class SignalExtractor {
   private lowVisFrames = 0;
   private lastQuality: FrameQuality = 'LOST';
   private lastLowness = 0;
+  /** 各脚踝最近一次可见的位置与时刻。 */
+  private ankles = new Map<number, { k: Keypoint; t: number }>();
   /** 最近一次滤波后的原始量，rebase 时用。 */
   private recent: Partial<Record<'noseY' | 'height' | 'shoulderW' | 'earW', number>> = {};
 
@@ -154,7 +156,7 @@ export class SignalExtractor {
       stance: false,
       lowness: this.lastLowness,
     };
-    const m = frame ? measure(frame, th) : null;
+    const m = frame ? measure(this.holdAnkles(frame, t), th) : null;
     const raw: FrameQuality = !m
       ? 'LOST'
       : m.noseY != null && m.shouldersOk && m.hipsOk
@@ -230,6 +232,20 @@ export class SignalExtractor {
     if (r.height == null || r.noseY == null || b.H <= 0) return;
     const k = r.height / b.H;
     this.baseline = { H: r.height, noseY0: r.noseY, shoulderW0: b.shoulderW0 * k, earW0: b.earW0 * k };
+  }
+
+  /** 脚踝短暂低置信时沿用上次可见位置（ankleHoldMs 内），不改动调用方的帧。 */
+  private holdAnkles(frame: Keypoint[], t: number): Keypoint[] {
+    let out = frame;
+    for (const i of [KP.leftAnkle, KP.rightAnkle]) {
+      const held = this.ankles.get(i);
+      if (visible(frame[i], this.th.visibilityMin)) this.ankles.set(i, { k: frame[i], t });
+      else if (held && t - held.t <= this.th.ankleHoldMs) {
+        if (out === frame) out = [...frame];
+        out[i] = held.k;
+      }
+    }
+    return out;
   }
 
   /** visibility 突降不立刻判丢失：连续 N 帧低置信才判 LOST。 */

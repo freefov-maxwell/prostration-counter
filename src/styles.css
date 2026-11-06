@@ -180,6 +180,14 @@ button {
   text-align: center;
 }
 
+.update-banner {
+  border: none;
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .intro .home-header {
   margin-top: 16px;
 }

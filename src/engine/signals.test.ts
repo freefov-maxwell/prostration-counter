@@ -128,6 +128,14 @@ describe('SignalExtractor 多信号姿态判定', () => {
     expect(after.scale!).toBeCloseTo(1, 1);
   });
 
+  it('脚踝短暂不可见：ankleHoldMs 内沿用上次位置，身高照算；超时后不再沿用', () => {
+    const ex = new SignalExtractor(baseline);
+    settle(ex, standingFrame());
+    const noFeet = standingFrame({ [KP.leftAnkle]: HIDDEN(0.45, 0.9), [KP.rightAnkle]: HIDDEN(0.55, 0.9) });
+    expect(ex.update(noFeet, 600).heightRatio).toBeCloseTo(1, 5);
+    expect(ex.update(noFeet, 1000).heightRatio).toBeNull();
+  });
+
   it('帧质量分级：髋不可见 → PARTIAL；连续 3 帧无效 → LOST（滞回防抖）', () => {
     const ex = new SignalExtractor(baseline);
     ex.update(standingFrame(), 0);

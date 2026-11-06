@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import { useAppStore } from './store/useAppStore';
 import { checkSupport } from './platform/support';
 import { HomePage } from './pages/HomePage';
@@ -12,6 +13,15 @@ import { UnsupportedPage } from './pages/UnsupportedPage';
 export function App() {
   const page = useAppStore((s) => s.page);
   const supportReasons = useAppStore((s) => s.supportReasons);
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    // iOS 从后台切回不会重新导航，浏览器不检查更新：回前台时主动查一次
+    onRegisteredSW(_url, reg) {
+      if (reg) document.addEventListener('visibilitychange', () => !document.hidden && void reg.update().catch(() => {}));
+    },
+  });
 
   useEffect(() => {
     const support = checkSupport();
@@ -42,6 +52,6 @@ export function App() {
     case 'settings':
       return <SettingsPage />;
     default:
-      return <HomePage />;
+      return <HomePage onUpdate={needRefresh ? () => void updateServiceWorker(true) : undefined} />;
   }
 }

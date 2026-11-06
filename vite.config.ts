@@ -4,6 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // Cloudflare 使用根路径；GitHub Pages 在构建命令中通过 --base 指定子路径。
 export default defineConfig({
+  define: {
+    // 设置页显示，用来确认手机上跑的是不是新版
+    __BUILD_TIME__: JSON.stringify(
+      new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false, dateStyle: 'short', timeStyle: 'short' }),
+    ),
+  },
   build: {
     rollupOptions: {
       output: {
@@ -28,7 +34,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 新版就绪后由首页横幅提示、用户点了才切换：练习中不会被刷新，新旧 SW 交接也不会和模型加载撞在一起
+      registerType: 'prompt',
       includeAssets: ['icons/*.png'],
       manifest: {
         name: '归元瑜伽计数',
@@ -49,8 +56,9 @@ export default defineConfig({
         // 模型 + 推理引擎共约 17MB，不做预缓存（否则首屏要背约 39MB），
         // 改为运行时 CacheFirst：运动页首次带进度下载后，离线可用
         globPatterns: ['**/*.{js,css,html,png,svg,json,mp3}'],
-        // MoveNet（默认引擎）的 TF.js 分包与模型同样按需下载，不进预缓存
-        globIgnores: ['**/models/**', '**/assets/movenet-*.js'],
+        // MoveNet（默认引擎）的 TF.js 分包与模型同样按需下载，不进预缓存。
+        // 适配层小包（movenet-xxxx.js，约 2KB）引用主包，每次发版文件名都变，须随新版预缓存，否则发版后首次使用要联网取
+        globIgnores: ['**/models/**', '**/assets/movenet-tfjs-*.js'],
         navigateFallback: 'index.html',
         runtimeCaching: [
           {

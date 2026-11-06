@@ -223,7 +223,7 @@ export function SettingsPage() {
       <section className="section">
         <h3>关于</h3>
         <p className="hint">
-          归元瑜伽计数 v0.1 · 纯本地运行：视频不出设备，数据仅存本机，无任何网络请求与埋点。
+          归元瑜伽计数 v0.1（{__BUILD_TIME__} 构建）· 纯本地运行：视频不出设备，数据仅存本机，无任何网络请求与埋点。
           练习时建议插电使用。提示语音为 AI 合成。
         </p>
       </section>

@@ -7,6 +7,8 @@ export interface Thresholds {
   lostFramesThreshold: number;
   /** 中值滤波窗口（帧）。 */
   medianWindow: number;
+  /** 计数中脚踝短暂低置信时沿用上次可见位置的时长：否则身高算不出，站直 / 起身的保持计时被打断，计数推迟。 */
+  ankleHoldMs: number;
 
   // —— 姿态判定 ——
   /** 站直：|headDrop| 上限。 */
@@ -92,6 +94,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   visibilityMin: 0.5,
   lostFramesThreshold: 3,
   medianWindow: 5,
+  // 实测 11-06 录制：站立时脚踝不可见帧达 32%，3 次计数因此推迟 1.3–2s；保持 400ms 后消除，旧录制计数不变
+  ankleHoldMs: 400,
 
   standHeadDrop: 0.15,
   standScaleMin: 0.75,

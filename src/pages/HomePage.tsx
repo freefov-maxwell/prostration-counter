@@ -138,7 +138,8 @@ function Intro({ firstTime, onStart, onSkip }: { firstTime: boolean; onStart(): 
   );
 }
 
-export function HomePage() {
+/** onUpdate：新版本已下载就绪时提供，点击切换到新版并刷新。 */
+export function HomePage({ onUpdate }: { onUpdate?: () => void }) {
   const { sessions, settings, ready, navigate, beginPrepare, updateSettings } = useAppStore();
   const today = todayCount(sessions);
   const streak = computeStreak(sessions);
@@ -165,6 +166,11 @@ export function HomePage() {
   return (
     <div className="page home">
       <WeChatBanner />
+      {onUpdate && (
+        <button className="wechat-banner update-banner" onClick={onUpdate}>
+          新版本已就绪，点此更新
+        </button>
+      )}
       <header className="home-header">
         <h1>归元瑜伽计数</h1>
         <p className="subtitle">专注练习，自动计数</p>
