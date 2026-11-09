@@ -1,4 +1,4 @@
-// MediaPipe PoseLandmarker 适配层：设置里可切换的高精度引擎（默认引擎为 MoveNet，见 movenet.ts）。
+// MediaPipe PoseLandmarker 适配层：默认引擎（设置里可切换为轻量的 MoveNet，见 movenet.ts）。
 // v1 决策：推理跑主线程 + 背压丢帧（见 README），WASM 全部本地自托管。
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import { Keypoint } from '../engine/types';

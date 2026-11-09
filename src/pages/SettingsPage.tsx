@@ -210,14 +210,14 @@ export function SettingsPage() {
           />
         </label>
         <label className="switch-row">
-          <span>使用高精度识别模型 MediaPipe</span>
+          <span>使用轻量识别模型 MoveNet</span>
           <input
             type="checkbox"
-            checked={settings.poseModel === 'mediapipe'}
-            onChange={(e) => void updateSettings({ poseModel: e.target.checked ? 'mediapipe' : 'movenet' })}
+            checked={settings.poseModel === 'movenet'}
+            onChange={(e) => void updateSettings({ poseModel: e.target.checked ? 'movenet' : 'mediapipe' })}
           />
         </label>
-        <p className="hint">默认的轻量模型计数不准，或运动时画面中常有他人走动，建议开启。可同时识别多人并锁定本人，识别更稳，但首次使用另需下载约 8 MB，手机负担更重，需浏览器支持 WebGL2。</p>
+        <p className="hint">默认使用 MediaPipe：可同时识别多人并锁定本人，识别更稳，首次需下载约 8 MB，需浏览器支持 WebGL2。若首次加载太慢、加载失败或手机发热卡顿，可开启轻量模型（约 4 MB，只识别单人，计数稍弱）。</p>
       </section>
 
       <section className="section">

@@ -32,6 +32,22 @@ const VOICE_REPEAT_MS = 8000;
 const DEBUG_WINDOW_MS = 5 * 60 * 1000;
 /** 加载超过此时长仍未完成 → 提示重新加载（从缓存读取正常 1–2s；挂住的加载不会自己报错）。 */
 const LOAD_SLOW_MS = 20000;
+
+/** 默认 MediaPipe 加载慢或失败（弱网、无 WebGL2）时，引导改用轻量模型。 */
+function MoveNetTip() {
+  const { updateSettings, navigate } = useAppStore();
+  return (
+    <>
+      <p className="hint">网络较慢或设备不支持时，可改用轻量识别模型 MoveNet（约 4 MB），之后也可在「设置」里切换回来。</p>
+      <button
+        className="btn-secondary"
+        onClick={() => void updateSettings({ poseModel: 'movenet' }).then(() => navigate('prepare'))}
+      >
+        改用轻量模型
+      </button>
+    </>
+  );
+}
 const RING_C = 2 * Math.PI * 92;
 
 function fmtDuration(sec: number): string {
@@ -87,7 +103,7 @@ export function SessionPage() {
   const debugRef2 = useRef({ frames: [] as DebugFrame[], events: [] as (MachineEvent & { t: number })[], baseline0: null as Baseline | null });
   const voiceRef = useRef({ key: null as VoiceKey | null, since: 0, spoken: null as VoiceKey | null, at: 0 });
   // 只有 MediaPipe 能同时识别多人，从中挑出本人；MoveNet 单人模型直接用唯一结果
-  const [tracker] = useState(() => ((store.settings.poseModel ?? 'movenet') === 'mediapipe' ? new SubjectTracker() : null));
+  const [tracker] = useState(() => ((store.settings.poseModel ?? 'mediapipe') === 'mediapipe' ? new SubjectTracker() : null));
 
   useEffect(() => {
     preloadVoices(['enter', 'headOut', 'feetOut', 'tooFar', 'pose', 'hold', 'ready', 'discarded', 'paused', 'resumed', 'goal']);
@@ -304,7 +320,7 @@ export function SessionPage() {
     }
   };
 
-  const poseModel = store.settings.poseModel ?? 'movenet';
+  const poseModel = store.settings.poseModel ?? 'mediapipe';
   const stage = usePoseLoop(videoRef, { onFrame, onError: setError, onProgress: setProgress, model: poseModel }, retryKey);
   const [slow, setSlow] = useState(false);
   useEffect(() => {
@@ -375,6 +391,7 @@ export function SessionPage() {
           {error && (
             <div className="panel">
               <p>{error}</p>
+              {poseModel === 'mediapipe' && <MoveNetTip />}
               <div className="btn-row">
                 <button
                   className="btn-primary"
@@ -414,6 +431,7 @@ export function SessionPage() {
               {slow && (
                 <>
                   <p className="hint">加载超过 20 秒仍未完成（{stuckAt()}），可重新加载页面再试</p>
+                  {poseModel === 'mediapipe' && <MoveNetTip />}
                   {/* 整页刷新：清掉卡住的加载状态（模块级缓存的加载 Promise、挂住的请求），比「重试」可靠 */}
                   <button className="btn-secondary" onClick={() => location.reload()}>
                     重新加载

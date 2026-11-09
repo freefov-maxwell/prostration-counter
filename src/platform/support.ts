@@ -1,5 +1,5 @@
 // 环境能力检测：无 getUserMedia 或 WebGL → 不支持页，不白屏。
-// 默认的 MoveNet（TF.js）WebGL1 即可运行；MediaPipe 需 WebGL2，不满足时加载失败会提示。
+// MoveNet（TF.js）WebGL1 即可运行；默认的 MediaPipe 需 WebGL2，不满足时加载失败会提示改用 MoveNet。
 export interface SupportResult {
   ok: boolean;
   reasons: string[];

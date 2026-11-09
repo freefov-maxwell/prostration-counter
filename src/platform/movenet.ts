@@ -1,6 +1,6 @@
-// MoveNet SinglePose Lightning（TF.js）适配层：默认的轻量引擎（压缩后约 4MB，MediaPipe 约 8MB，设置里可切换）。
+// MoveNet SinglePose Lightning（TF.js）适配层：设置里可切换的轻量引擎（压缩后约 4MB，默认的 MediaPipe 约 8MB）。
 // 输出补成 BlazePose 33 点布局，识别引擎无需改动；MoveNet 没有的点 visibility 为 0，z 恒为 0。
-// 本模块经动态 import 按需加载，切到 MediaPipe 的用户不下载 TF.js。
+// 本模块经动态 import 按需加载，用默认 MediaPipe 的用户不下载 TF.js。
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { GraphModel, loadGraphModel } from '@tensorflow/tfjs-converter';

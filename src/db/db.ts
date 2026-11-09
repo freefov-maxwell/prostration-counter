@@ -26,7 +26,7 @@ export interface Settings {
   defaultTarget?: number;
   /** 调试：相机页叠加骨架与识别数值。 */
   debugOverlay?: boolean;
-  /** 姿态识别引擎，未设置视为 movenet。 */
+  /** 姿态识别引擎，未设置视为 mediapipe（默认，识别更稳）。 */
   poseModel?: PoseModel;
   /** 首次介绍页已看过（点了开始或跳过）。 */
   introSeen?: boolean;
