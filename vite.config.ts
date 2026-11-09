@@ -1,14 +1,33 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
-// Cloudflare 使用根路径；GitHub Pages 在构建命令中通过 --base 指定子路径。
+const git = (args: string) => {
+  try {
+    // CST-8 即北京时间，POSIX 写法 Linux 与 Windows 版 git 都认
+    return execSync(`git ${args}`, { stdio: ['ignore', 'pipe', 'ignore'], env: { ...process.env, TZ: 'CST-8' } })
+      .toString()
+      .trim();
+  } catch {
+    return '';
+  }
+};
+// 版本号 = package.json 的 主.次 + 提交日期 + 当日第几个提交。日期段 = 年份差(相对 2026，为 0 省略) + 月日：
+// 2026-11-09 第 2 个提交 → 0.1.1109.2，2027-01-05 → 0.1.10105.1，数值随时间单调递增。
+// 浅克隆看不到当天更早的提交，序号不准，退化为只到日期
+const [major, minor] = JSON.parse(readFileSync('package.json', 'utf-8')).version.split('.');
+const commitDays = git('log --format=%cd --date=format-local:%Y%m%d').split('\n').filter(Boolean);
+const shallow = git('rev-parse --is-shallow-repository') !== 'false';
+const daySeq = commitDays.filter((d) => d === commitDays[0]).length;
+const dateSeg = commitDays[0] && Number(commitDays[0]) - 20260000;
+const appVersion = [major, minor, dateSeg, !shallow && dateSeg && daySeq].filter(Boolean).join('.');
+
 export default defineConfig({
   define: {
-    // 设置页显示，用来确认手机上跑的是不是新版
-    __BUILD_TIME__: JSON.stringify(
-      new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false, dateStyle: 'short', timeStyle: 'short' }),
-    ),
+    // 设置页「关于」显示，用来确认手机上跑的是不是新版
+    __APP_VERSION__: JSON.stringify(appVersion),
   },
   build: {
     rollupOptions: {

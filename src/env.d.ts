@@ -1,2 +1,2 @@
-/** 构建时间（北京时间），vite.config.ts 中 define 注入。 */
-declare const __BUILD_TIME__: string;
+/** 版本号（主.次.年份差+月日.当日序号），vite.config.ts 中由 git 生成。 */
+declare const __APP_VERSION__: string;
